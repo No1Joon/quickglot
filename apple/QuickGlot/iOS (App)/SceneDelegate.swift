@@ -2,7 +2,6 @@
 //  SceneDelegate.swift
 //  iOS (App)
 //
-//  Created by 장현준 on 8/26/26.
 //
 
 import UIKit

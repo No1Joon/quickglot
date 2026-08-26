@@ -48,6 +48,10 @@ for rel in "${SOURCES[@]}"; do
   [ -f "$STASH/$rel" ] && cp "$STASH/$rel" "apple/$rel"
 done
 
+# The Xcode template stamps the machine owner's name into every generated
+# source header. The repository is public and the name serves no purpose here.
+/usr/bin/find apple -name '*.swift' -exec sed -i '' '/^\/\/  Created by /d' {} +
+
 PBX="apple/$APP_NAME/$APP_NAME.xcodeproj/project.pbxproj"
 sed -i '' \
   -e "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $IOS_TARGET;/g" \

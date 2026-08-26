@@ -2,7 +2,6 @@
 //  AppDelegate.swift
 //  macOS (App)
 //
-//  Created by 장현준 on 8/26/26.
 //
 
 import Cocoa
