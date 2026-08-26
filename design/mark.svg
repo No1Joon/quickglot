@@ -1,0 +1,10 @@
+<!-- Shared artwork. icon-square.svg and icon-tile.svg differ only in the plate
+     behind this mark, so edit the bars here and both stay in step. -->
+<g id="mark">
+  <!-- The selection highlight is what makes this read as "selected text"
+       rather than a generic list; it fades out cleanly at small sizes. -->
+  <rect x="176" y="436" width="512" height="152" rx="42" fill="#FFFFFF" opacity="0.20"/>
+  <rect x="216" y="316" width="592" height="96" rx="48" fill="#FFFFFF"/>
+  <rect x="216" y="464" width="448" height="96" rx="48" fill="#FFD166"/>
+  <rect x="216" y="612" width="528" height="96" rx="48" fill="#FFFFFF"/>
+</g>
