@@ -13,7 +13,9 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="QuickGlot"
 BUNDLE_ID="com.no1joon.quickglot"
-TEAM_ID="M25B65BYV8"
+# Not committed: the Apple Team ID is a personal identifier, so it is supplied
+# per-machine. Leave it unset to have Xcode resolve the team itself.
+TEAM_ID="${QUICKGLOT_TEAM_ID:-}"
 IOS_TARGET="26.0"
 MACOS_TARGET="26.0"
 
@@ -52,6 +54,7 @@ sed -i '' \
   -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9.]*;/MACOSX_DEPLOYMENT_TARGET = $MACOS_TARGET;/g" \
   "$PBX"
 
+if [ -n "$TEAM_ID" ]; then
 python3 - "$PBX" "$TEAM_ID" <<'PY'
 import re, sys
 path, team = sys.argv[1], sys.argv[2]
@@ -65,6 +68,9 @@ if 'DEVELOPMENT_TEAM' not in s:
         f.write(s)
     print(f'DEVELOPMENT_TEAM applied to {n} configurations')
 PY
+else
+  echo "QUICKGLOT_TEAM_ID not set - leaving signing team to Xcode"
+fi
 
 echo
 echo "Extension resources now referenced by the project:"

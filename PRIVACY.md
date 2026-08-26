@@ -19,6 +19,10 @@ browsing history, or anything else.
 This also means translation works with the device offline, once the language
 pack has been downloaded.
 
+To be explicit about what a browser extension inherently does: QuickGlot reads
+the text you select on a page, because that is the text being translated. It
+reads; it does not transmit, store, or share.
+
 ## What is stored
 
 One setting — the language you chose to translate into — kept in the browser's
@@ -52,11 +56,11 @@ QuickGlot is open source. The claims above are checkable in the code — in
 particular, searching the extension sources for any networking call returns
 nothing.
 
-Source: TODO({{REPO_URL}})
+Source: https://github.com/No1Joon/quickglot
 
 ## Contact
 
-TODO({{CONTACT_EMAIL}})
+Questions or concerns: open an issue at https://github.com/No1Joon/quickglot/issues
 
 ## Changes
 

@@ -61,6 +61,15 @@ cd apple/QuickGlot
 xcodebuild -scheme "QuickGlot (macOS)" -destination 'platform=macOS' build
 ```
 
+서명이 필요하면 Apple Team ID 를 넘긴다 — 리포에는 커밋하지 않는다.
+
+```sh
+export QUICKGLOT_TEAM_ID=XXXXXXXXXX     # regen-xcode.sh 가 읽는다
+xcodebuild ... DEVELOPMENT_TEAM=$QUICKGLOT_TEAM_ID build
+```
+
+⚠️ Xcode GUI 의 Signing & Capabilities 에서 팀을 고르면 `project.pbxproj` 에 팀 ID 가 다시 기록된다. 커밋 전에 `git diff` 로 확인할 것.
+
 ## macOS에서 처음 실행하기
 
 1. `npm run build` 후 Xcode에서 `QuickGlot (macOS)` 실행
