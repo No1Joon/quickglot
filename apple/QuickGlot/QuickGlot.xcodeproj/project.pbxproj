@@ -1,0 +1,1007 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		763C2899303EE2DD004DF73E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763C2898303EE2DD004DF73E /* AppDelegate.swift */; };
+		763C289B303EE2DD004DF73E /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763C289A303EE2DD004DF73E /* SceneDelegate.swift */; };
+		763C289E303EE2DD004DF73E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 763C289C303EE2DD004DF73E /* LaunchScreen.storyboard */; };
+		763C28A1303EE2DD004DF73E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 763C289F303EE2DD004DF73E /* Main.storyboard */; };
+		763C28AA303EE2DD004DF73E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763C28A9303EE2DD004DF73E /* AppDelegate.swift */; };
+		763C28AD303EE2DD004DF73E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 763C28AB303EE2DD004DF73E /* Main.storyboard */; };
+		763C28B4303EE2DD004DF73E /* QuickGlot Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 763C28B3303EE2DD004DF73E /* QuickGlot Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		763C28BE303EE2DD004DF73E /* QuickGlot Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 763C28BD303EE2DD004DF73E /* QuickGlot Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		763C28C3303EE2DD004DF73E /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 763C2888303EE2DC004DF73E /* Main.html */; };
+		763C28C4303EE2DD004DF73E /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 763C2888303EE2DC004DF73E /* Main.html */; };
+		763C28C5303EE2DD004DF73E /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 763C288A303EE2DC004DF73E /* Icon.png */; };
+		763C28C6303EE2DD004DF73E /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 763C288A303EE2DC004DF73E /* Icon.png */; };
+		763C28C7303EE2DD004DF73E /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 763C288B303EE2DC004DF73E /* Style.css */; };
+		763C28C8303EE2DD004DF73E /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 763C288B303EE2DC004DF73E /* Style.css */; };
+		763C28C9303EE2DD004DF73E /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 763C288C303EE2DC004DF73E /* Script.js */; };
+		763C28CA303EE2DD004DF73E /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 763C288C303EE2DC004DF73E /* Script.js */; };
+		763C28CB303EE2DD004DF73E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763C288D303EE2DC004DF73E /* ViewController.swift */; };
+		763C28CC303EE2DD004DF73E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763C288D303EE2DC004DF73E /* ViewController.swift */; };
+		763C28CD303EE2DD004DF73E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 763C288E303EE2DD004DF73E /* Assets.xcassets */; };
+		763C28CE303EE2DD004DF73E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 763C288E303EE2DD004DF73E /* Assets.xcassets */; };
+		763C28CF303EE2DD004DF73E /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763C2890303EE2DD004DF73E /* SafariWebExtensionHandler.swift */; };
+		763C28D0303EE2DD004DF73E /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 763C2890303EE2DD004DF73E /* SafariWebExtensionHandler.swift */; };
+		763C28E9303EE2DD004DF73E /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E2303EE2DD004DF73E /* popup.js */; };
+		763C28EA303EE2DD004DF73E /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E3303EE2DD004DF73E /* background.js */; };
+		763C28EB303EE2DD004DF73E /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E4303EE2DD004DF73E /* popup.html */; };
+		763C28EC303EE2DD004DF73E /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E5303EE2DD004DF73E /* icons */; };
+		763C28ED303EE2DD004DF73E /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E6303EE2DD004DF73E /* manifest.json */; };
+		763C28EE303EE2DD004DF73E /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E7303EE2DD004DF73E /* popup.css */; };
+		763C28EF303EE2DD004DF73E /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E8303EE2DD004DF73E /* content.js */; };
+		763C28F0303EE2DD004DF73E /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E2303EE2DD004DF73E /* popup.js */; };
+		763C28F1303EE2DD004DF73E /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E3303EE2DD004DF73E /* background.js */; };
+		763C28F2303EE2DD004DF73E /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E4303EE2DD004DF73E /* popup.html */; };
+		763C28F3303EE2DD004DF73E /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E5303EE2DD004DF73E /* icons */; };
+		763C28F4303EE2DD004DF73E /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E6303EE2DD004DF73E /* manifest.json */; };
+		763C28F5303EE2DD004DF73E /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E7303EE2DD004DF73E /* popup.css */; };
+		763C28F6303EE2DD004DF73E /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 763C28E8303EE2DD004DF73E /* content.js */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		763C28B5303EE2DD004DF73E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 763C2882303EE2DC004DF73E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 763C28B2303EE2DD004DF73E;
+			remoteInfo = "QuickGlot Extension (iOS)";
+		};
+		763C28BF303EE2DD004DF73E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 763C2882303EE2DC004DF73E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 763C28BC303EE2DD004DF73E;
+			remoteInfo = "QuickGlot Extension (macOS)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		763C28D6303EE2DD004DF73E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				763C28B4303EE2DD004DF73E /* QuickGlot Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28DD303EE2DD004DF73E /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				763C28BE303EE2DD004DF73E /* QuickGlot Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		763C2889303EE2DC004DF73E /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		763C288A303EE2DC004DF73E /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		763C288B303EE2DC004DF73E /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		763C288C303EE2DC004DF73E /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		763C288D303EE2DC004DF73E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		763C288E303EE2DD004DF73E /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		763C2890303EE2DD004DF73E /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		763C2895303EE2DD004DF73E /* QuickGlot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickGlot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		763C2898303EE2DD004DF73E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		763C289A303EE2DD004DF73E /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		763C289D303EE2DD004DF73E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		763C28A0303EE2DD004DF73E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		763C28A2303EE2DD004DF73E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		763C28A7303EE2DD004DF73E /* QuickGlot.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickGlot.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		763C28A9303EE2DD004DF73E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		763C28AC303EE2DD004DF73E /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		763C28AE303EE2DD004DF73E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		763C28B3303EE2DD004DF73E /* QuickGlot Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "QuickGlot Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		763C28B8303EE2DD004DF73E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		763C28BD303EE2DD004DF73E /* QuickGlot Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "QuickGlot Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		763C28C2303EE2DD004DF73E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		763C28E2303EE2DD004DF73E /* popup.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = popup.js; path = ../../../dist/popup.js; sourceTree = "<group>"; };
+		763C28E3303EE2DD004DF73E /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = ../../../dist/background.js; sourceTree = "<group>"; };
+		763C28E4303EE2DD004DF73E /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = popup.html; path = ../../../dist/popup.html; sourceTree = "<group>"; };
+		763C28E5303EE2DD004DF73E /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = ../../../dist/icons; sourceTree = "<group>"; };
+		763C28E6303EE2DD004DF73E /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = ../../../dist/manifest.json; sourceTree = "<group>"; };
+		763C28E7303EE2DD004DF73E /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = popup.css; path = ../../../dist/popup.css; sourceTree = "<group>"; };
+		763C28E8303EE2DD004DF73E /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = ../../../dist/content.js; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		763C2892303EE2DD004DF73E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28A4303EE2DD004DF73E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28B0303EE2DD004DF73E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28BA303EE2DD004DF73E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		763C2881303EE2DC004DF73E = {
+			isa = PBXGroup;
+			children = (
+				763C2886303EE2DC004DF73E /* Shared (App) */,
+				763C288F303EE2DD004DF73E /* Shared (Extension) */,
+				763C2897303EE2DD004DF73E /* iOS (App) */,
+				763C28A8303EE2DD004DF73E /* macOS (App) */,
+				763C28B7303EE2DD004DF73E /* iOS (Extension) */,
+				763C28C1303EE2DD004DF73E /* macOS (Extension) */,
+				763C2896303EE2DD004DF73E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		763C2886303EE2DC004DF73E /* Shared (App) */ = {
+			isa = PBXGroup;
+			children = (
+				763C288D303EE2DC004DF73E /* ViewController.swift */,
+				763C288E303EE2DD004DF73E /* Assets.xcassets */,
+				763C2887303EE2DC004DF73E /* Resources */,
+			);
+			path = "Shared (App)";
+			sourceTree = "<group>";
+		};
+		763C2887303EE2DC004DF73E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				763C2888303EE2DC004DF73E /* Main.html */,
+				763C288A303EE2DC004DF73E /* Icon.png */,
+				763C288B303EE2DC004DF73E /* Style.css */,
+				763C288C303EE2DC004DF73E /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		763C288F303EE2DD004DF73E /* Shared (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				763C28E1303EE2DD004DF73E /* Resources */,
+				763C2890303EE2DD004DF73E /* SafariWebExtensionHandler.swift */,
+			);
+			path = "Shared (Extension)";
+			sourceTree = "<group>";
+		};
+		763C2896303EE2DD004DF73E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				763C2895303EE2DD004DF73E /* QuickGlot.app */,
+				763C28A7303EE2DD004DF73E /* QuickGlot.app */,
+				763C28B3303EE2DD004DF73E /* QuickGlot Extension.appex */,
+				763C28BD303EE2DD004DF73E /* QuickGlot Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		763C2897303EE2DD004DF73E /* iOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				763C2898303EE2DD004DF73E /* AppDelegate.swift */,
+				763C289A303EE2DD004DF73E /* SceneDelegate.swift */,
+				763C289C303EE2DD004DF73E /* LaunchScreen.storyboard */,
+				763C289F303EE2DD004DF73E /* Main.storyboard */,
+				763C28A2303EE2DD004DF73E /* Info.plist */,
+			);
+			path = "iOS (App)";
+			sourceTree = "<group>";
+		};
+		763C28A8303EE2DD004DF73E /* macOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				763C28A9303EE2DD004DF73E /* AppDelegate.swift */,
+				763C28AB303EE2DD004DF73E /* Main.storyboard */,
+				763C28AE303EE2DD004DF73E /* Info.plist */,
+			);
+			path = "macOS (App)";
+			sourceTree = "<group>";
+		};
+		763C28B7303EE2DD004DF73E /* iOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				763C28B8303EE2DD004DF73E /* Info.plist */,
+			);
+			path = "iOS (Extension)";
+			sourceTree = "<group>";
+		};
+		763C28C1303EE2DD004DF73E /* macOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				763C28C2303EE2DD004DF73E /* Info.plist */,
+			);
+			path = "macOS (Extension)";
+			sourceTree = "<group>";
+		};
+		763C28E1303EE2DD004DF73E /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				763C28E2303EE2DD004DF73E /* popup.js */,
+				763C28E3303EE2DD004DF73E /* background.js */,
+				763C28E4303EE2DD004DF73E /* popup.html */,
+				763C28E5303EE2DD004DF73E /* icons */,
+				763C28E6303EE2DD004DF73E /* manifest.json */,
+				763C28E7303EE2DD004DF73E /* popup.css */,
+				763C28E8303EE2DD004DF73E /* content.js */,
+			);
+			name = Resources;
+			path = "Shared (Extension)";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		763C2894303EE2DD004DF73E /* QuickGlot (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 763C28D7303EE2DD004DF73E /* Build configuration list for PBXNativeTarget "QuickGlot (iOS)" */;
+			buildPhases = (
+				763C2891303EE2DD004DF73E /* Sources */,
+				763C2892303EE2DD004DF73E /* Frameworks */,
+				763C2893303EE2DD004DF73E /* Resources */,
+				763C28D6303EE2DD004DF73E /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				763C28B6303EE2DD004DF73E /* PBXTargetDependency */,
+			);
+			name = "QuickGlot (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "QuickGlot (iOS)";
+			productReference = 763C2895303EE2DD004DF73E /* QuickGlot.app */;
+			productType = "com.apple.product-type.application";
+		};
+		763C28A6303EE2DD004DF73E /* QuickGlot (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 763C28DE303EE2DD004DF73E /* Build configuration list for PBXNativeTarget "QuickGlot (macOS)" */;
+			buildPhases = (
+				763C28A3303EE2DD004DF73E /* Sources */,
+				763C28A4303EE2DD004DF73E /* Frameworks */,
+				763C28A5303EE2DD004DF73E /* Resources */,
+				763C28DD303EE2DD004DF73E /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				763C28C0303EE2DD004DF73E /* PBXTargetDependency */,
+			);
+			name = "QuickGlot (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "QuickGlot (macOS)";
+			productReference = 763C28A7303EE2DD004DF73E /* QuickGlot.app */;
+			productType = "com.apple.product-type.application";
+		};
+		763C28B2303EE2DD004DF73E /* QuickGlot Extension (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 763C28D3303EE2DD004DF73E /* Build configuration list for PBXNativeTarget "QuickGlot Extension (iOS)" */;
+			buildPhases = (
+				763C28AF303EE2DD004DF73E /* Sources */,
+				763C28B0303EE2DD004DF73E /* Frameworks */,
+				763C28B1303EE2DD004DF73E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "QuickGlot Extension (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "QuickGlot Extension (iOS)";
+			productReference = 763C28B3303EE2DD004DF73E /* QuickGlot Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		763C28BC303EE2DD004DF73E /* QuickGlot Extension (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 763C28DA303EE2DD004DF73E /* Build configuration list for PBXNativeTarget "QuickGlot Extension (macOS)" */;
+			buildPhases = (
+				763C28B9303EE2DD004DF73E /* Sources */,
+				763C28BA303EE2DD004DF73E /* Frameworks */,
+				763C28BB303EE2DD004DF73E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "QuickGlot Extension (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "QuickGlot Extension (macOS)";
+			productReference = 763C28BD303EE2DD004DF73E /* QuickGlot Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		763C2882303EE2DC004DF73E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					763C2894303EE2DD004DF73E = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					763C28A6303EE2DD004DF73E = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					763C28B2303EE2DD004DF73E = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					763C28BC303EE2DD004DF73E = {
+						CreatedOnToolsVersion = 26.6;
+					};
+				};
+			};
+			buildConfigurationList = 763C2885303EE2DC004DF73E /* Build configuration list for PBXProject "QuickGlot" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 763C2881303EE2DC004DF73E;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 763C2896303EE2DD004DF73E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				763C2894303EE2DD004DF73E /* QuickGlot (iOS) */,
+				763C28A6303EE2DD004DF73E /* QuickGlot (macOS) */,
+				763C28B2303EE2DD004DF73E /* QuickGlot Extension (iOS) */,
+				763C28BC303EE2DD004DF73E /* QuickGlot Extension (macOS) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		763C2893303EE2DD004DF73E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				763C28C5303EE2DD004DF73E /* Icon.png in Resources */,
+				763C289E303EE2DD004DF73E /* LaunchScreen.storyboard in Resources */,
+				763C28C3303EE2DD004DF73E /* Main.html in Resources */,
+				763C28C9303EE2DD004DF73E /* Script.js in Resources */,
+				763C28CD303EE2DD004DF73E /* Assets.xcassets in Resources */,
+				763C28A1303EE2DD004DF73E /* Main.storyboard in Resources */,
+				763C28C7303EE2DD004DF73E /* Style.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28A5303EE2DD004DF73E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				763C28C6303EE2DD004DF73E /* Icon.png in Resources */,
+				763C28C8303EE2DD004DF73E /* Style.css in Resources */,
+				763C28AD303EE2DD004DF73E /* Main.storyboard in Resources */,
+				763C28CA303EE2DD004DF73E /* Script.js in Resources */,
+				763C28CE303EE2DD004DF73E /* Assets.xcassets in Resources */,
+				763C28C4303EE2DD004DF73E /* Main.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28B1303EE2DD004DF73E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				763C28F1303EE2DD004DF73E /* background.js in Resources */,
+				763C28F3303EE2DD004DF73E /* icons in Resources */,
+				763C28F5303EE2DD004DF73E /* popup.css in Resources */,
+				763C28F4303EE2DD004DF73E /* manifest.json in Resources */,
+				763C28F2303EE2DD004DF73E /* popup.html in Resources */,
+				763C28F6303EE2DD004DF73E /* content.js in Resources */,
+				763C28F0303EE2DD004DF73E /* popup.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28BB303EE2DD004DF73E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				763C28EA303EE2DD004DF73E /* background.js in Resources */,
+				763C28EC303EE2DD004DF73E /* icons in Resources */,
+				763C28EE303EE2DD004DF73E /* popup.css in Resources */,
+				763C28ED303EE2DD004DF73E /* manifest.json in Resources */,
+				763C28EB303EE2DD004DF73E /* popup.html in Resources */,
+				763C28EF303EE2DD004DF73E /* content.js in Resources */,
+				763C28E9303EE2DD004DF73E /* popup.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		763C2891303EE2DD004DF73E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				763C28CB303EE2DD004DF73E /* ViewController.swift in Sources */,
+				763C2899303EE2DD004DF73E /* AppDelegate.swift in Sources */,
+				763C289B303EE2DD004DF73E /* SceneDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28A3303EE2DD004DF73E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				763C28CC303EE2DD004DF73E /* ViewController.swift in Sources */,
+				763C28AA303EE2DD004DF73E /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28AF303EE2DD004DF73E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				763C28CF303EE2DD004DF73E /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		763C28B9303EE2DD004DF73E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				763C28D0303EE2DD004DF73E /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		763C28B6303EE2DD004DF73E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 763C28B2303EE2DD004DF73E /* QuickGlot Extension (iOS) */;
+			targetProxy = 763C28B5303EE2DD004DF73E /* PBXContainerItemProxy */;
+		};
+		763C28C0303EE2DD004DF73E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 763C28BC303EE2DD004DF73E /* QuickGlot Extension (macOS) */;
+			targetProxy = 763C28BF303EE2DD004DF73E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		763C2888303EE2DC004DF73E /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				763C2889303EE2DC004DF73E /* Base */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		763C289C303EE2DD004DF73E /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				763C289D303EE2DD004DF73E /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		763C289F303EE2DD004DF73E /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				763C28A0303EE2DD004DF73E /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		763C28AB303EE2DD004DF73E /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				763C28AC303EE2DD004DF73E /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		763C28D1303EE2DD004DF73E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		763C28D2303EE2DD004DF73E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		763C28D4303EE2DD004DF73E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M25B65BYV8;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "QuickGlot Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
+				PRODUCT_NAME = "QuickGlot Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		763C28D5303EE2DD004DF73E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M25B65BYV8;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "QuickGlot Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
+				PRODUCT_NAME = "QuickGlot Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		763C28D8303EE2DD004DF73E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M25B65BYV8;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = QuickGlot;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
+				PRODUCT_NAME = QuickGlot;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		763C28D9303EE2DD004DF73E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M25B65BYV8;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = QuickGlot;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
+				PRODUCT_NAME = QuickGlot;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		763C28DB303EE2DD004DF73E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M25B65BYV8;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "QuickGlot Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
+				PRODUCT_NAME = "QuickGlot Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		763C28DC303EE2DD004DF73E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M25B65BYV8;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "QuickGlot Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
+				PRODUCT_NAME = "QuickGlot Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		763C28DF303EE2DD004DF73E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M25B65BYV8;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = QuickGlot;
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
+				PRODUCT_NAME = QuickGlot;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		763C28E0303EE2DD004DF73E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M25B65BYV8;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = QuickGlot;
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
+				PRODUCT_NAME = QuickGlot;
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		763C2885303EE2DC004DF73E /* Build configuration list for PBXProject "QuickGlot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				763C28D1303EE2DD004DF73E /* Debug */,
+				763C28D2303EE2DD004DF73E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		763C28D3303EE2DD004DF73E /* Build configuration list for PBXNativeTarget "QuickGlot Extension (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				763C28D4303EE2DD004DF73E /* Debug */,
+				763C28D5303EE2DD004DF73E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		763C28D7303EE2DD004DF73E /* Build configuration list for PBXNativeTarget "QuickGlot (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				763C28D8303EE2DD004DF73E /* Debug */,
+				763C28D9303EE2DD004DF73E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		763C28DA303EE2DD004DF73E /* Build configuration list for PBXNativeTarget "QuickGlot Extension (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				763C28DB303EE2DD004DF73E /* Debug */,
+				763C28DC303EE2DD004DF73E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		763C28DE303EE2DD004DF73E /* Build configuration list for PBXNativeTarget "QuickGlot (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				763C28DF303EE2DD004DF73E /* Debug */,
+				763C28E0303EE2DD004DF73E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 763C2882303EE2DC004DF73E /* Project object */;
+}
