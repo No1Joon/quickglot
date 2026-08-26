@@ -1,0 +1,11 @@
+:root { color-scheme: light dark; }
+body { margin: 0; }
+.wrap {
+  width: 260px;
+  padding: 14px;
+  font: 13px/1.45 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+label { display: block; font-weight: 600; margin-bottom: 6px; }
+select { width: 100%; font: inherit; }
+.hint { margin: 10px 0 0; opacity: 0.6; font-size: 12px; }
+.hint.error { opacity: 1; color: #d1453b; }
