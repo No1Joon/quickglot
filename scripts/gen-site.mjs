@@ -1,0 +1,120 @@
+/**
+ * Renders app-info/policy/*.md into docs/, which GitHub Pages serves at
+ * https://no1joon.github.io/quickglot/.
+ *
+ * app-info/policy is the single source of truth; docs/ is generated and should
+ * never be edited by hand. The markdown links to sibling pages with absolute
+ * slugs like /quickglot/privacy, which resolve correctly because the Pages site
+ * is itself served from /quickglot/.
+ */
+import { marked } from 'marked'
+import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { dirname, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const SRC = resolve(repo, 'app-info/policy')
+const OUT = resolve(repo, 'docs')
+const BASE = '/quickglot'
+
+/** Pages that exist in both languages, so each can offer the other. */
+const COUNTERPART = {
+  privacy: ['privacy-en', 'English'],
+  'privacy-en': ['privacy', '한국어'],
+  support: ['support-en', 'English'],
+  'support-en': ['support', '한국어'],
+}
+
+function splitFrontmatter(text) {
+  const match = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(text)
+  if (!match) throw new Error('missing frontmatter')
+  const front = {}
+  for (const line of match[1].split('\n')) {
+    const kv = /^([a-z]+):\s*(.*)$/.exec(line)
+    if (kv) front[kv[1]] = kv[2].trim()
+  }
+  return { front, body: match[2] }
+}
+
+function page({ title, description, content, slug }) {
+  const counterpart = COUNTERPART[slug]
+  const nav = [
+    slug === 'index' ? null : `<a href="${BASE}/">QuickGlot</a>`,
+    counterpart ? `<a href="${BASE}/${counterpart[0]}">${counterpart[1]}</a>` : null,
+  ]
+    .filter(Boolean)
+    .join('')
+
+  return `<!doctype html>
+<html lang="${slug.endsWith('-en') ? 'en' : 'ko'}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>${title === 'QuickGlot' ? title : `${title} — QuickGlot`}</title>
+${description ? `<meta name="description" content="${description}">` : ''}
+<style>
+:root { color-scheme: light dark; --fg: #1a1a1a; --muted: #666; --bg: #fff; --line: #e3e3e3; --link: #1552c8; }
+@media (prefers-color-scheme: dark) {
+  :root { --fg: #e8e8e8; --muted: #9a9a9a; --bg: #141414; --line: #2e2e2e; --link: #7aa7f5; }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 16px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  overflow-wrap: break-word;
+}
+main { max-width: 46rem; margin: 0 auto; padding: 2rem 1.25rem 5rem; }
+nav { display: flex; gap: 1.25rem; padding-bottom: 1.5rem; font-size: .875rem; }
+nav a { color: var(--muted); text-decoration: none; }
+nav a:hover { color: var(--link); }
+h1 { font-size: 1.9rem; line-height: 1.25; margin: 0 0 1.5rem; }
+h2 { font-size: 1.2rem; margin: 2.5rem 0 .75rem; padding-top: 1.25rem; border-top: 1px solid var(--line); }
+h3 { font-size: 1rem; margin: 1.75rem 0 .5rem; }
+a { color: var(--link); }
+code { font-size: .9em; }
+table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; margin: 1rem 0; }
+th, td { border: 1px solid var(--line); padding: .5rem .75rem; text-align: left; vertical-align: top; }
+th { font-weight: 600; }
+blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid var(--line); color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+${nav ? `<nav>${nav}</nav>` : ''}
+<h1>${title}</h1>
+${content}
+</main>
+</body>
+</html>
+`
+}
+
+await rm(OUT, { recursive: true, force: true })
+await mkdir(OUT, { recursive: true })
+// Without this, Pages runs the output through Jekyll, which we do not want.
+await writeFile(resolve(OUT, '.nojekyll'), '')
+
+const files = (await readdir(SRC)).filter((f) => f.endsWith('.md'))
+for (const file of files) {
+  const slug = file.replace(/\.md$/, '')
+  const { front, body } = splitFrontmatter(await readFile(resolve(SRC, file), 'utf8'))
+  if (!front.title) throw new Error(`${file}: no title in frontmatter`)
+
+  const html = page({
+    title: front.title,
+    description: front.description,
+    content: marked.parse(body),
+    slug,
+  })
+
+  // index.md is the site root; every other page gets a directory so its URL has
+  // no .html suffix and matches the /quickglot/<slug> links in the markdown.
+  const target = slug === 'index' ? resolve(OUT, 'index.html') : resolve(OUT, slug, 'index.html')
+  await mkdir(dirname(target), { recursive: true })
+  await writeFile(target, html)
+  console.log(`  ${slug === 'index' ? '/' : `/${slug}`}`)
+}
+
+// The icon doubles as the site's favicon.
+await cp(resolve(repo, 'extension/icons/icon-128.png'), resolve(OUT, 'icon.png'))
+console.log(`\nbuilt ${files.length} pages -> docs/`)
