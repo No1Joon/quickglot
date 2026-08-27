@@ -39,7 +39,8 @@ dist/               빌드 산출물 — Xcode가 상대경로로 참조한다 (
 apple/QuickGlot/    Xcode 프로젝트 (macOS + iOS 앱 · 확장 타깃)
   Shared (App)/ViewController.swift            컨테이너 앱: 언어팩 다운로드 온보딩
   Shared (Extension)/SafariWebExtensionHandler.swift   네이티브 번역 핸들러
-docs/DECISIONS.md   설계 결정
+DECISIONS.md        설계 결정
+docs/               app-info/policy 에서 생성된 GitHub Pages 사이트 (직접 편집 금지)
 ```
 
 ## 개발
