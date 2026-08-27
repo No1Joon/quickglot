@@ -53,6 +53,22 @@ done
 /usr/bin/find apple -name '*.swift' -exec sed -i '' '/^\/\/  Created by /d' {} +
 
 PBX="apple/$APP_NAME/$APP_NAME.xcodeproj/project.pbxproj"
+
+# The converter grants the container app outbound network and read-only file
+# access by default. Neither target makes a network request or opens a file, and
+# a sandbox that cannot reach the network is what actually backs the privacy
+# claim rather than merely asserting it.
+sed -i '' \
+  -e 's/ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;/ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;/g' \
+  -e 's/ENABLE_USER_SELECTED_FILES = readonly;/ENABLE_USER_SELECTED_FILES = NO;/g' \
+  "$PBX"
+
+# No network means nothing to declare for export compliance; saying so up front
+# removes the question from every submission.
+for plist in "apple/$APP_NAME/iOS (App)/Info.plist" "apple/$APP_NAME/macOS (App)/Info.plist"; do
+  /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$plist" 2>/dev/null \
+    || /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$plist"
+done
 sed -i '' \
   -e "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $IOS_TARGET;/g" \
   -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9.]*;/MACOSX_DEPLOYMENT_TARGET = $MACOS_TARGET;/g" \

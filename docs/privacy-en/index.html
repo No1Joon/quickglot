@@ -76,6 +76,7 @@ on-device Translation framework and shows the result next to your selection.</p>
 <li>Text inside password fields, text inputs, and editable areas is ignored.</li>
 <li>Diagnostic logs record only the character count and the language pair, never the text itself or its translation.</li>
 <li>The on-page panel is rendered in a closed shadow root, so scripts on the page cannot read what was translated.</li>
+<li>The app and the extension run in a sandbox with <strong>no network entitlement</strong>. You do not have to take the code&#39;s word for it: <code>codesign -d --entitlements - QuickGlot.app</code> shows no <code>com.apple.security.network.client</code>.</li>
 </ul>
 <h2>Verify it yourself</h2>
 <p>QuickGlot is open source. The claims above are checkable in the code — in particular, searching the extension sources for any networking call returns nothing.</p>

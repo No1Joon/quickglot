@@ -75,6 +75,7 @@ blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid var(--li
 <li>비밀번호 입력란, 텍스트 입력란, 편집 가능한 영역 안의 선택은 무시합니다.</li>
 <li>진단 로그에는 글자 수와 언어쌍만 기록되며, 텍스트나 번역 결과는 기록되지 않습니다.</li>
 <li>화면에 표시되는 번역 패널은 closed shadow root 안에 그려지므로, 방문한 페이지의 스크립트가 번역 내용을 읽을 수 없습니다.</li>
+<li>앱과 확장은 <strong>네트워크 권한이 없는 샌드박스</strong>에서 실행됩니다. 코드를 믿지 않더라도 <code>codesign -d --entitlements - QuickGlot.app</code> 으로 직접 확인할 수 있습니다 — <code>com.apple.security.network.client</code> 가 없습니다.</li>
 </ul>
 <h2>직접 확인하기</h2>
 <p>QuickGlot 은 오픈소스입니다. 위 내용은 코드에서 확인할 수 있으며, 특히 확장 소스에서 네트워크 호출을 검색하면 아무것도 나오지 않습니다.</p>

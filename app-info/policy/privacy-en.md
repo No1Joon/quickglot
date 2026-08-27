@@ -45,6 +45,7 @@ QuickGlot does **not** request permission for tabs, browsing history, cookies, d
 - Text inside password fields, text inputs, and editable areas is ignored.
 - Diagnostic logs record only the character count and the language pair, never the text itself or its translation.
 - The on-page panel is rendered in a closed shadow root, so scripts on the page cannot read what was translated.
+- The app and the extension run in a sandbox with **no network entitlement**. You do not have to take the code's word for it: `codesign -d --entitlements - QuickGlot.app` shows no `com.apple.security.network.client`.
 
 ## Verify it yourself
 
