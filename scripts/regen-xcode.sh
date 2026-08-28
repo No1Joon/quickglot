@@ -27,6 +27,22 @@ SOURCES=(
 cd "$REPO"
 npm run build
 
+# This script deletes apple/ and lets the converter rebuild it, restoring only
+# the settings listed below. Anything else added to the project — a test target,
+# an extra scheme, a new source file — would be destroyed without a word. Refuse
+# rather than discard work that cannot be reconstructed.
+PBX_BEFORE="apple/$APP_NAME/$APP_NAME.xcodeproj/project.pbxproj"
+if [ -f "$PBX_BEFORE" ]; then
+  EXPECTED=4   # app and extension, macOS and iOS
+  ACTUAL=$(/usr/bin/grep -c "isa = PBXNativeTarget;" "$PBX_BEFORE" || true)
+  if [ "$ACTUAL" -ne "$EXPECTED" ]; then
+    echo "error: project has $ACTUAL targets, expected $EXPECTED." >&2
+    echo "Regenerating would delete the extra target(s). Register new dist/ files" >&2
+    echo "by hand in Xcode instead, or update this script to restore them." >&2
+    exit 1
+  fi
+fi
+
 STASH="$(mktemp -d)"
 trap 'rm -rf "$STASH"' EXIT
 

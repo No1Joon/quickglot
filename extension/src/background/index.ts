@@ -4,18 +4,13 @@ import {
   type TranslateRequest,
   type TranslateResponse,
 } from '../shared/messages'
+import { cacheKey } from '../shared/logic'
 
 /** Safari ignores this identifier and routes to the containing app's extension handler. */
 const NATIVE_APP = 'application.id'
 
 const CACHE_LIMIT = 200
 const cache = new Map<string, TranslateResponse>()
-
-function cacheKey(req: TranslateRequest): string {
-  // NUL separator: a language code never contains it, so no target/text pair
-  // can collide with another by shifting the boundary.
-  return `${req.target ?? '*'}\u0000${req.text}`
-}
 
 function remember(key: string, res: TranslateResponse): void {
   // Only successes are worth keeping — a `notInstalled` answer goes stale the
