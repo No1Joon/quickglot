@@ -78,17 +78,61 @@ private func name(_ language: Locale.Language) -> String {
     Locale.current.localizedString(forLanguageCode: code(language)) ?? code(language)
 }
 
-/// The pair is chosen explicitly here rather than inferred, because the
-/// extension's target language is a separate setting living in the extension's
-/// own storage, which this app cannot read. Explicit pickers mean the user can
-/// always fetch exactly the pair they configured over there.
+/// What the screen is doing about the currently selected pair.
+///
+/// The system download sheet cannot be used as the source of truth: it returns
+/// as soon as the user dismisses it, it keeps downloading in the background
+/// afterwards, it reports nothing when the user cancels, and it may not appear
+/// at all on a retry while a download is already running. So progress is decided
+/// here, by re-reading availability on a timer.
+private enum Phase: Equatable {
+    case checking
+    case ready
+    case needsDownload
+    /// Seconds elapsed. Apple exposes no progress for language pack downloads —
+    /// `LanguageAvailability` answers installed/supported/unsupported and nothing
+    /// in between — so elapsed time is the only honest thing to show. Inventing a
+    /// percentage would be worse than showing none.
+    case downloading(elapsed: Int)
+    case slow(elapsed: Int)
+    /// The system is refusing download requests, so the sheet will not appear
+    /// however many times the button is pressed.
+    case blocked
+    case unsupported
+    case sameLanguage
+
+    var isDownloading: Bool {
+        switch self {
+        case .downloading, .slow: return true
+        default: return false
+        }
+    }
+}
+
+private func elapsedText(_ seconds: Int) -> String {
+    seconds < 60 ? "\(seconds)s" : "\(seconds / 60)m \(seconds % 60)s"
+}
+
+/// How long a download may run before the screen offers a way out. Polling
+/// continues past this — packs really can take minutes on a slow connection.
+private let slowAfter: Duration = .seconds(60)
+/// The elapsed label ticks every second; availability is only re-read every
+/// other tick, since that call is far heavier than redrawing a number.
+private let tickInterval: Duration = .seconds(1)
+private let checksPerTick = 2
+
 struct OnboardingView: View {
     @State private var languages: [Locale.Language] = []
     @State private var source = Locale.Language(identifier: "en")
     @State private var target = Locale.Language(identifier: "ko")
-    @State private var status: LanguageAvailability.Status?
+
+    @State private var phase: Phase = .checking
+    @State private var sourceInstalled: Bool?
+    @State private var targetInstalled: Bool?
+
     @State private var configuration: TranslationSession.Configuration?
-    @State private var downloading = false
+    @State private var poll: Task<Void, Never>?
+    @State private var prepareError: String?
 
     var body: some View {
         ScrollView {
@@ -103,16 +147,20 @@ struct OnboardingView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task { await loadLanguages() }
         .translationTask(configuration) { session in
-            // prepareTranslation() returns as soon as the system sheet is
-            // dismissed, which can happen before the download finishes — the
-            // status re-read below is what actually decides readiness.
-            try? await session.prepareTranslation()
-            await refreshStatus()
-            downloading = false
+            // Surfaces the system sheet. A normal return says only that the sheet
+            // is gone — the poll started alongside it decides what happened. A
+            // thrown error, though, is real information and must not be swallowed.
+            do {
+                prepareError = nil
+                try await session.prepareTranslation()
+            } catch {
+                prepareError = error.localizedDescription
+            }
         }
         .onReceive(didBecomeActive) { _ in
             Task { await refreshStatus() }
         }
+        .onDisappear { poll?.cancel() }
     }
 
     private var header: some View {
@@ -144,65 +192,249 @@ struct OnboardingView: View {
     }
 
     private var packSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("2. Download a language pair").font(.headline)
-            Text("Downloaded once, then it works offline.")
+        VStack(alignment: .leading, spacing: 12) {
+            Text("2. Download the languages you need").font(.headline)
+            Text("Downloaded once, then translation works offline.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
             if languages.isEmpty {
                 ProgressView().padding(.vertical, 8)
             } else {
-                Picker("From", selection: $source) {
-                    ForEach(languages, id: \.self) { Text(name($0)).tag($0) }
-                }
-                Picker("To", selection: $target) {
-                    ForEach(languages, id: \.self) { Text(name($0)).tag($0) }
-                }
+                languageRow("From", selection: $source, installed: sourceInstalled)
+                languageRow("To", selection: $target, installed: targetInstalled)
+                Divider()
                 statusRow
             }
         }
-        .onChange(of: source) { Task { await refreshStatus() } }
-        .onChange(of: target) { Task { await refreshStatus() } }
+        .onChange(of: source) { pairChanged() }
+        .onChange(of: target) { pairChanged() }
+    }
+
+    /// Each language carries its own state, because a pair is often half ready
+    /// and "Download" on the pair says nothing about which half is missing.
+    @ViewBuilder
+    private func languageRow(
+        _ label: String,
+        selection: Binding<Locale.Language>,
+        installed: Bool?
+    ) -> some View {
+        HStack(spacing: 12) {
+            Text(label)
+                .frame(width: 44, alignment: .leading)
+                .foregroundStyle(.secondary)
+            Picker("", selection: selection) {
+                ForEach(languages, id: \.self) { Text(name($0)).tag($0) }
+            }
+            .labelsHidden()
+            Spacer(minLength: 8)
+            switch installed {
+            case .some(true):
+                Label("On device", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                    .font(.caption)
+            case .some(false):
+                Label("Not downloaded", systemImage: "arrow.down.circle")
+                    .foregroundStyle(.secondary)
+                    .font(.caption)
+            case nil:
+                ProgressView().controlSize(.small)
+            }
+        }
     }
 
     @ViewBuilder
     private var statusRow: some View {
-        HStack {
-            switch status {
-            case .installed:
-                Label("Ready", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-            case .supported:
-                if downloading {
-                    ProgressView().controlSize(.small)
-                } else {
-                    Button("Download") { download() }
-                }
-            case .unsupported:
-                Text("This pair is not supported on device.")
-                    .foregroundStyle(.secondary)
-            case nil:
-                ProgressView().controlSize(.small)
-            case .some:
-                Text("—").foregroundStyle(.secondary)
+        switch phase {
+        case .checking:
+            HStack { ProgressView().controlSize(.small); Text("Checking…").foregroundStyle(.secondary) }
+
+        case .ready:
+            Label("Ready — this pair translates offline", systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+
+        case .needsDownload:
+            HStack {
+                Button("Download") { startDownload() }
+                Spacer()
+                Button("Recheck") { Task { await refreshStatus() } }
+                    .buttonStyle(.borderless)
             }
-            Spacer()
-            Button("Recheck") { Task { await refreshStatus() } }
-                .buttonStyle(.borderless)
+
+        case let .downloading(elapsed):
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text("Downloading… \(elapsedText(elapsed))").monospacedDigit()
+                }
+                Text("You can close the system dialog. The download continues, and this screen updates when it finishes.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+        case let .slow(elapsed):
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(spacing: 8) {
+                    ProgressView().controlSize(.small)
+                    Text("Still downloading… \(elapsedText(elapsed))").monospacedDigit()
+                }
+                Text("This is taking a while. Large packs can take several minutes. If you cancelled the download, or the connection dropped, start it again.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if let prepareError {
+                    Text(prepareError).font(.caption).foregroundStyle(.secondary)
+                }
+                HStack {
+                    Button("Try again") { startDownload() }
+                    systemSettingsButton
+                    Button("Recheck") { Task { await refreshStatus() } }
+                        .buttonStyle(.borderless)
+                }
+            }
+
+        case .blocked:
+            VStack(alignment: .leading, spacing: 8) {
+                Label("The system is not accepting download requests right now",
+                      systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.orange)
+                Text("This usually means a download was already started or cancelled recently. Pressing Download again will not bring the dialog back — manage the languages directly instead.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                if let prepareError {
+                    Text(prepareError).font(.caption).foregroundStyle(.secondary)
+                }
+                HStack {
+                    systemSettingsButton
+                    Button("Recheck") { Task { await refreshStatus() } }
+                        .buttonStyle(.borderless)
+                }
+            }
+
+        case .unsupported:
+            Label("Apple's on-device models don't cover this pair", systemImage: "exclamationmark.triangle")
+                .foregroundStyle(.secondary)
+
+        case .sameLanguage:
+            Text("Pick two different languages.").foregroundStyle(.secondary)
         }
-        .padding(.top, 4)
     }
 
-    private func download() {
-        downloading = true
+    /// Language packs are also manageable outside the app, which is the only way
+    /// out when the system will not show its own download sheet.
+    @ViewBuilder
+    private var systemSettingsButton: some View {
+#if os(macOS)
+        Button("Open Language Settings") {
+            if let url = URL(string: "x-apple.systempreferences:com.apple.Localization-Settings.extension") {
+                NSWorkspace.shared.open(url)
+            }
+        }
+#else
+        Text("Manage in Settings › General › Language & Region.")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+#endif
+    }
+
+    // MARK: - Actions
+
+    private func pairChanged() {
+        poll?.cancel()
+        poll = nil
+        Task { await refreshStatus() }
+    }
+
+    private func startDownload() {
+        phase = .downloading(elapsed: 0)
+
         // translationTask only re-fires when the configuration compares unequal,
-        // so a retry of the same pair has to invalidate() rather than reassign —
-        // otherwise the row spins forever.
+        // so a retry of the same pair has to invalidate() rather than reassign.
         if configuration?.source == source, configuration?.target == target {
             configuration?.invalidate()
         } else {
             configuration = TranslationSession.Configuration(source: source, target: target)
+        }
+
+        poll?.cancel()
+        poll = Task {
+            var seconds = 0
+            while !Task.isCancelled {
+                try? await Task.sleep(for: tickInterval)
+                if Task.isCancelled { return }
+                seconds += 1
+
+                if seconds % checksPerTick == 0 {
+                    await refreshInstalled()
+                    if await pairStatus() == .installed {
+                        phase = .ready
+                        return
+                    }
+                }
+
+                if seconds >= Int(slowAfter.components.seconds) {
+                    // Nothing has arrived and the system will not be asked again;
+                    // keeping a spinner up would misrepresent a dead end.
+                    phase = canRequestDownloads() ? .slow(elapsed: seconds) : .blocked
+                } else {
+                    phase = .downloading(elapsed: seconds)
+                }
+            }
+        }
+    }
+
+    // MARK: - Status
+
+    private func pairStatus() async -> LanguageAvailability.Status {
+        await LanguageAvailability().status(from: source, to: target)
+    }
+
+    /// Whether asking for a download would actually surface the system sheet.
+    /// When this is false the button is a dead end, so the screen must say so
+    /// rather than letting the user press it repeatedly.
+    private func canRequestDownloads() -> Bool {
+        guard let session = try? TranslationSession(installedSource: source, target: target) else {
+            return false
+        }
+        return session.canRequestDownloads
+    }
+
+    /// Per-language readiness. `status(from:to:)` with a nil target answers for
+    /// the source language alone, which is what the two rows need.
+    private func refreshInstalled() async {
+        let availability = LanguageAvailability()
+        async let s = availability.status(from: source, to: nil)
+        async let t = availability.status(from: target, to: nil)
+        let (sourceStatus, targetStatus) = await (s, t)
+        sourceInstalled = sourceStatus == .installed
+        targetInstalled = targetStatus == .installed
+    }
+
+    private func refreshStatus() async {
+        guard code(source) != code(target) else {
+            poll?.cancel()
+            phase = .sameLanguage
+            sourceInstalled = nil
+            targetInstalled = nil
+            return
+        }
+
+        await refreshInstalled()
+
+        switch await pairStatus() {
+        case .installed:
+            poll?.cancel()
+            phase = .ready
+        case .unsupported:
+            poll?.cancel()
+            phase = .unsupported
+        case .supported:
+            // A poll already running owns the phase; do not knock it back to
+            // needsDownload while a download is still in flight.
+            if poll == nil || poll?.isCancelled == true || !phase.isDownloading {
+                phase = canRequestDownloads() ? .needsDownload : .blocked
+            }
+        @unknown default:
+            phase = .needsDownload
         }
     }
 
@@ -215,8 +447,6 @@ struct OnboardingView: View {
         }
         languages = found.sorted { name($0) < name($1) }
 
-        // Default to the pair the user most likely wants: their reading language
-        // into the first system language that differs from it.
         if let english = languages.first(where: { code($0) == "en" }) { source = english }
         let preferred = Locale.preferredLanguages.map(Locale.Language.init(identifier:))
         if let first = preferred.first(where: { code($0) != code(source) }),
@@ -224,13 +454,5 @@ struct OnboardingView: View {
             target = match
         }
         await refreshStatus()
-    }
-
-    private func refreshStatus() async {
-        guard code(source) != code(target) else {
-            status = .unsupported
-            return
-        }
-        status = await LanguageAvailability().status(from: source, to: target)
     }
 }
