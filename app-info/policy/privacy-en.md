@@ -20,6 +20,12 @@ For the same reason, translation keeps working with the device offline once the 
 
 To be explicit about what a browser extension inherently does: QuickGlot reads the text you select on a page, because that is the text being translated. It reads; it does not transmit, store, or share.
 
+## What Apple receives
+
+Translation is performed by Apple's on-device models. Apple's documentation states that all translation through `TranslationSession` is processed on the device, while Apple may collect API usage metrics that include **the app bundle ID and the language pair** being translated (for example English to Korean). **The text being translated and its result are not included.**
+
+This is done by the operating system's translation feature, not by QuickGlot, and QuickGlot neither receives nor can see these metrics. It is written here because you should be able to know about it.
+
 ## What is stored
 
 One setting — the language you chose to translate into — kept in the browser's local extension storage on your device. Nothing else is written anywhere.
