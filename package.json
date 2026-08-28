@@ -7,10 +7,13 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "node scripts/build.mjs --watch",
-    "typecheck": "tsc --noEmit",
-    "site": "node scripts/gen-site.mjs"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "site": "node scripts/gen-site.mjs",
+    "test": "node scripts/check-sources.mjs && node --test --experimental-strip-types \"extension/src/**/*.test.ts\"",
+    "check:sources": "node scripts/check-sources.mjs"
   },
   "devDependencies": {
+    "@types/node": "^26.4.0",
     "@types/webextension-polyfill": "^0.12.1",
     "esbuild": "^0.25.0",
     "marked": "^18.0.11",

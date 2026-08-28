@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "node"
+    ],
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "extension/src/**/*.test.ts",
+    "extension/src/shared/logic.ts"
+  ],
+  "exclude": []
+}
