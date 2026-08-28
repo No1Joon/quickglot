@@ -67,6 +67,8 @@ const STYLE = `
 }
 `
 
+import { placement, RTL_LANGUAGES, toPageCoordinates } from '../shared/logic'
+
 export interface Anchor {
   /** Viewport coordinates of the selection, as measured when it was made. */
   top: number
@@ -140,6 +142,10 @@ export function show(anchor: Anchor, content: Content): void {
       meta.textContent = `${content.source} → ${content.target}`
       body.className = 'body'
       body.textContent = content.text
+      if (RTL_LANGUAGES.has(content.target)) {
+        body.dir = 'rtl'
+        body.style.textAlign = 'right'
+      }
     } else {
       meta.textContent = 'QuickGlot'
       body.className = 'body error'
@@ -171,19 +177,13 @@ export function show(anchor: Anchor, content: Content): void {
  * the same spot even if the user scrolled while the translation was running.
  */
 function position(layer: HTMLElement, anchor: Anchor): void {
-  const GAP = 8
-  const MARGIN = 12
   const { width, height } = layer.getBoundingClientRect()
-
-  let left = anchor.left + (anchor.right - anchor.left) / 2 - width / 2
-  left = Math.max(MARGIN, Math.min(left, window.innerWidth - width - MARGIN))
-
-  let top = anchor.bottom + GAP
-  if (top + height > window.innerHeight - MARGIN) {
-    const above = anchor.top - height - GAP
-    top = above >= MARGIN ? above : Math.max(MARGIN, window.innerHeight - height - MARGIN)
-  }
-
-  layer.style.left = `${Math.round(left + anchor.scrollX)}px`
-  layer.style.top = `${Math.round(top + anchor.scrollY)}px`
+  const spot = placement(
+    anchor,
+    { width, height },
+    { width: window.innerWidth, height: window.innerHeight },
+  )
+  const page = toPageCoordinates(spot, anchor)
+  layer.style.left = `${page.left}px`
+  layer.style.top = `${page.top}px`
 }
