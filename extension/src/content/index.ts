@@ -4,7 +4,7 @@ import { dismiss, isOwnElement, show, type Anchor } from './ui'
 /**
  * macOS: releasing the mouse over a selection translates immediately.
  * iOS: the system callout owns the selection gesture, so we surface a chip
- * that the user taps — settled in the design pass, see DECISIONS.md.
+ * that the user taps — settled in the design pass, see docs/DECISIONS.md.
  */
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches
 

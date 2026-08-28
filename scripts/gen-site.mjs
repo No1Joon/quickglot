@@ -1,11 +1,11 @@
 /**
- * Renders app-info/policy/*.md into docs/, which GitHub Pages serves at
+ * Renders app-info/policy/*.md into site/, which CI uploads to GitHub Pages at
  * https://no1joon.github.io/quickglot/.
  *
- * app-info/policy is the single source of truth; docs/ is generated and should
- * never be edited by hand. The markdown links to sibling pages with absolute
- * slugs like /quickglot/privacy, which resolve correctly because the Pages site
- * is itself served from /quickglot/.
+ * app-info/policy is the single source of truth. site/ is build output and is
+ * not committed, the same as dist/ — the workflow rebuilds it on every deploy.
+ * The markdown links to sibling pages with absolute slugs like /quickglot/privacy,
+ * which resolve because the Pages site is itself served from /quickglot/.
  */
 import { marked } from 'marked'
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url'
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SRC = resolve(repo, 'app-info/policy')
-const OUT = resolve(repo, 'docs')
+const OUT = resolve(repo, 'site')
 const BASE = '/quickglot'
 
 /** Pages that exist in both languages, so each can offer the other. */
@@ -135,4 +135,4 @@ for (const file of files) {
 
 // The icon doubles as the site's favicon.
 await cp(resolve(repo, 'extension/icons/icon-128.png'), resolve(OUT, 'icon.png'))
-console.log(`\nbuilt ${files.length} pages -> docs/`)
+console.log(`\nbuilt ${files.length} pages -> site/`)

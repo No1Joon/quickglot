@@ -1,68 +1,14 @@
-# Privacy Policy — QuickGlot
+# Privacy Policy
 
-**QuickGlot does not collect, transmit, or store your data. There is no server.**
+**QuickGlot collects, transmits, and stores nothing. There is no server, and the
+extension makes no network requests of any kind.**
 
-## What the extension does
+The full policy is published at:
 
-When you select text on a web page, QuickGlot passes that selection to Apple's
-on-device Translation framework and shows the result next to your selection.
+- English — https://no1joon.github.io/quickglot/privacy-en/
+- 한국어 — https://no1joon.github.io/quickglot/privacy/
 
-## Where your text goes
-
-Nowhere. The selected text is handed to the operating system's local translation
-models and the result comes straight back. It is never sent over the network,
-because the extension makes no network requests of any kind — there is no
-backend, no analytics service, no crash reporter, and no third-party SDK. The
-developer operates no servers and therefore never receives your text, your
-browsing history, or anything else.
-
-This also means translation works with the device offline, once the language
-pack has been downloaded.
-
-To be explicit about what a browser extension inherently does: QuickGlot reads
-the text you select on a page, because that is the text being translated. It
-reads; it does not transmit, store, or share.
-
-## What is stored
-
-One setting — the language you chose to translate into — kept in the browser's
-local extension storage on your device. Nothing else is written anywhere.
-
-Recently translated selections are held in memory only, to avoid re-translating
-the same phrase, and are discarded when the browser releases the extension.
-
-## Permissions, and why each is needed
-
-| Permission | Why |
-|---|---|
-| Access to the pages you visit (`<all_urls>`) | Translating a selection requires reading the selection, which can only be done from within the page. There is no way to scope this ahead of time, because any page may be the one you want to translate. Safari lets you narrow this per site in Settings → Extensions. |
-| `nativeMessaging` | Carries the selected text to the app's local translation handler. It talks only to QuickGlot's own bundled handler on this device. |
-| `storage` | Remembers the target language you picked. |
-
-QuickGlot deliberately does **not** request permission for tabs, browsing
-history, cookies, downloads, or any remote host.
-
-## Safeguards
-
-- Text inside password fields, text inputs, and editable areas is ignored.
-- Diagnostic logs record only the character count and the language pair, never
-  the text itself or its translation.
-- The on-page panel is rendered in a closed shadow root, so scripts on the page
-  cannot read what was translated.
-
-## Verify it yourself
-
-QuickGlot is open source. The claims above are checkable in the code — in
-particular, searching the extension sources for any networking call returns
-nothing.
-
-Source: https://github.com/No1Joon/quickglot
-
-## Contact
-
-Questions or concerns: open an issue at https://github.com/No1Joon/quickglot/issues
-
-## Changes
-
-Any change to this policy will be committed to the repository above, so its
-history is public.
+Its source is [`app-info/policy/privacy-en.md`](app-info/policy/privacy-en.md)
+and [`app-info/policy/privacy.md`](app-info/policy/privacy.md); the published
+pages under `docs/` are generated from them by `npm run site`. Edit the source,
+never `docs/`.

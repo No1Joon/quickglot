@@ -1,7 +1,30 @@
+# Node
 node_modules/
-dist/
 *.log
-.DS_Store
+
+# 빌드 산출물 — dist/ 는 Xcode 가 참조하고, site/ 는 CI 가 Pages 로 배포한다.
+dist/
+site/
+build/
+
+# 설계·작업 문서 — git 에서 제외하되 디스크에는 유지.
+# 에이전트는 파일시스템에서 직접 읽는다(Read 는 .gitignore 무관).
+docs/
+
+# 로컬 에이전트/IDE 설정 (머신별·개인) — 공유 금지.
+# .claude/skills 와 .agents/ 는 팀 규약이라 커밋한다.
+.claude/settings.local.json
+.antigravitycli/
+
+# 코드리뷰 산출물 — 리뷰 스킬이 /tmp 에 쓰고 종료 시 지우지만 안전망으로 무시까지 건다.
+pr*_diff*
+pr*_meta.json
+pr*_inline*.json
+review_body*.md
+
+# Xcode
 xcuserdata/
 *.xcuserstate
-build/
+
+# macOS
+.DS_Store

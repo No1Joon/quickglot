@@ -1,0 +1,92 @@
+name: check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  extension:
+    name: extension (typecheck + build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+
+  site:
+    name: site (policy pages build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # site/ is build output and is not committed, so the check is that it
+      # builds and produces the pages the store fields point at.
+      - run: npm run site
+      - name: every published page exists
+        run: |
+          for page in index.html privacy/index.html privacy-en/index.html \
+                      support/index.html support-en/index.html; do
+            test -s "site/$page" || { echo "::error::site/$page missing or empty"; exit 1; }
+          done
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  apple:
+    name: apple (macOS + iOS build)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # The Xcode project references dist/ by relative path, so the extension
+      # must be built before the app can be.
+      - run: npm run build
+      - run: xcodebuild -version
+      - name: build macOS
+        run: |
+          xcodebuild -project "apple/QuickGlot/QuickGlot.xcodeproj" \
+            -scheme "QuickGlot (macOS)" -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO build
+      - name: build iOS
+        run: |
+          xcodebuild -project "apple/QuickGlot/QuickGlot.xcodeproj" \
+            -scheme "QuickGlot (iOS)" -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO build
+
+  deploy-pages:
+    name: deploy policy pages
+    needs: site
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

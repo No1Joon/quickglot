@@ -15,7 +15,9 @@ Safari 확장 — 텍스트를 선택하면 그 자리에서 번역한다. 번�
 - 패널은 closed shadow root 에 그려서 페이지 스크립트가 내용을 못 읽는다.
 - 권한은 `nativeMessaging`·`storage` 둘뿐이다. `host_permissions` 는 쓰지 않으므로 요청하지 않는다.
 
-전문은 [PRIVACY.md](PRIVACY.md).
+전문: [개인정보 처리방침](https://no1joon.github.io/quickglot/privacy/) · [Privacy Policy](https://no1joon.github.io/quickglot/privacy-en/) · [고객 지원](https://no1joon.github.io/quickglot/support/)
+
+이 페이지들의 원본은 `app-info/policy/` 이고, `npm run site` 가 `site/` 로 렌더한 뒤 CI 가 GitHub Pages 로 배포한다. 산출물은 커밋하지 않는다.
 
 ## 요구사항
 
@@ -39,8 +41,8 @@ dist/               빌드 산출물 — Xcode가 상대경로로 참조한다 (
 apple/QuickGlot/    Xcode 프로젝트 (macOS + iOS 앱 · 확장 타깃)
   Shared (App)/ViewController.swift            컨테이너 앱: 언어팩 다운로드 온보딩
   Shared (Extension)/SafariWebExtensionHandler.swift   네이티브 번역 핸들러
-DECISIONS.md        설계 결정
-docs/               app-info/policy 에서 생성된 GitHub Pages 사이트 (직접 편집 금지)
+docs/               설계 결정 등 작업 문서 — **git 에서 제외**되고 디스크에만 있다
+site/               app-info/policy 에서 생성된 Pages 사이트 — 커밋하지 않는다 (CI 가 배포)
 ```
 
 ## 개발
