@@ -665,6 +665,7 @@
 					"-framework",
 					SafariServices,
 				);
+				CODE_SIGN_ENTITLEMENTS = "iOS (Extension)/QuickGlotExtension-iOS.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
 				PRODUCT_NAME = "QuickGlot Extension";
 				SDKROOT = iphoneos;
@@ -698,6 +699,7 @@
 					"-framework",
 					SafariServices,
 				);
+				CODE_SIGN_ENTITLEMENTS = "iOS (Extension)/QuickGlotExtension-iOS.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
 				PRODUCT_NAME = "QuickGlot Extension";
 				SDKROOT = iphoneos;
@@ -739,6 +741,7 @@
 					"-framework",
 					WebKit,
 				);
+				CODE_SIGN_ENTITLEMENTS = "iOS (App)/QuickGlot-iOS.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
 				PRODUCT_NAME = QuickGlot;
 				SDKROOT = iphoneos;
@@ -779,6 +782,7 @@
 					"-framework",
 					WebKit,
 				);
+				CODE_SIGN_ENTITLEMENTS = "iOS (App)/QuickGlot-iOS.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
 				PRODUCT_NAME = QuickGlot;
 				SDKROOT = iphoneos;
@@ -816,6 +820,7 @@
 					"-framework",
 					SafariServices,
 				);
+				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/QuickGlotExtension-macOS.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
 				PRODUCT_NAME = "QuickGlot Extension";
 				SDKROOT = macosx;
@@ -851,6 +856,7 @@
 					"-framework",
 					SafariServices,
 				);
+				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/QuickGlotExtension-macOS.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
 				PRODUCT_NAME = "QuickGlot Extension";
 				SDKROOT = macosx;
@@ -891,6 +897,7 @@
 					"-framework",
 					WebKit,
 				);
+				CODE_SIGN_ENTITLEMENTS = "macOS (App)/QuickGlot-macOS.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
 				PRODUCT_NAME = QuickGlot;
 				REGISTER_APP_GROUPS = YES;
@@ -932,6 +939,7 @@
 					"-framework",
 					WebKit,
 				);
+				CODE_SIGN_ENTITLEMENTS = "macOS (App)/QuickGlot-macOS.entitlements";
 				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
 				PRODUCT_NAME = QuickGlot;
 				REGISTER_APP_GROUPS = YES;

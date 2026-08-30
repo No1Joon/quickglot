@@ -22,6 +22,10 @@ MACOS_TARGET="26.0"
 SOURCES=(
   "$APP_NAME/Shared (App)/ViewController.swift"
   "$APP_NAME/Shared (Extension)/SafariWebExtensionHandler.swift"
+  "$APP_NAME/macOS (App)/QuickGlot-macOS.entitlements"
+  "$APP_NAME/macOS (Extension)/QuickGlotExtension-macOS.entitlements"
+  "$APP_NAME/iOS (App)/QuickGlot-iOS.entitlements"
+  "$APP_NAME/iOS (Extension)/QuickGlotExtension-iOS.entitlements"
 )
 
 cd "$REPO"
@@ -78,6 +82,52 @@ sed -i '' \
   -e 's/ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;/ENABLE_OUTGOING_NETWORK_CONNECTIONS = NO;/g' \
   -e 's/ENABLE_USER_SELECTED_FILES = readonly;/ENABLE_USER_SELECTED_FILES = NO;/g' \
   "$PBX"
+
+# The app group is what lets the app and the extension share one setting. The
+# team prefix is expanded by Xcode at build time so the team id stays out of the
+# repository, and the same value is mirrored into Info.plist for the code to read.
+python3 - "$PBX" <<'PYX'
+import re, sys
+path = sys.argv[1]
+with open(path) as f:
+    s = f.read()
+
+def entitlements_for(bundle, sdk):
+    mac = sdk.startswith('macosx')
+    ext = bundle.endswith('.Extension')
+    plat = 'macOS' if mac else 'iOS'
+    kind = 'Extension' if ext else 'App'
+    return f"{plat} ({kind})/QuickGlot{'Extension' if ext else ''}-{plat}.entitlements"
+
+def patch(m):
+    body = m.group(0)
+    if 'CODE_SIGN_ENTITLEMENTS' in body:
+        return body
+    bid = re.search(r'PRODUCT_BUNDLE_IDENTIFIER = ([^;]+);', body)
+    sdk = re.search(r'SDKROOT = ([^;]+);', body)
+    if not (bid and sdk):
+        return body
+    indent = re.search(r'\n(\s*)PRODUCT_BUNDLE_IDENTIFIER', body).group(1)
+    return body.replace(
+        f'{indent}PRODUCT_BUNDLE_IDENTIFIER',
+        f'{indent}CODE_SIGN_ENTITLEMENTS = "{entitlements_for(bid.group(1), sdk.group(1))}";\n{indent}PRODUCT_BUNDLE_IDENTIFIER', 1)
+
+s = re.sub(r'/\* (?:Debug|Release) \*/ = \{\n\s*isa = XCBuildConfiguration;\n\s*buildSettings = \{.*?\n\s*\};',
+           patch, s, flags=re.S)
+with open(path, 'w') as f:
+    f.write(s)
+print('CODE_SIGN_ENTITLEMENTS restored')
+PYX
+
+for entry in "macOS (App):\$(TeamIdentifierPrefix)group.com.no1joon.quickglot" \
+             "macOS (Extension):\$(TeamIdentifierPrefix)group.com.no1joon.quickglot" \
+             "iOS (App):group.com.no1joon.quickglot" \
+             "iOS (Extension):group.com.no1joon.quickglot"; do
+  dir="${entry%%:*}"; value="${entry#*:}"
+  plist="apple/$APP_NAME/$dir/Info.plist"
+  /usr/libexec/PlistBuddy -c "Add :AppGroupIdentifier string $value" "$plist" 2>/dev/null \
+    || /usr/libexec/PlistBuddy -c "Set :AppGroupIdentifier $value" "$plist"
+done
 
 # No network means nothing to declare for export compliance; saying so up front
 # removes the question from every submission.
