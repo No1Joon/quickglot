@@ -70,6 +70,28 @@ private let didBecomeActive = NotificationCenter.default
     .publisher(for: UIApplication.didBecomeActiveNotification)
 #endif
 
+/// Reads the target language the extension is pinned to.
+///
+/// The extension writes it through `SharedSettings` in
+/// `Shared (Extension)/SafariWebExtensionHandler.swift`. The two cannot share a
+/// file: they are separate build targets, and `scripts/regen-xcode.sh` rebuilds
+/// the project from scratch, so a file added to both would be dropped without a
+/// word on the next regeneration. The group identifier and the key below must
+/// therefore match that file by hand — `docs/INVARIANTS.md` records the pair.
+private enum ExtensionSettings {
+    private static let targetKey = "targetLanguage"
+
+    static var target: String? {
+        guard let group = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String,
+              !group.isEmpty,
+              let defaults = UserDefaults(suiteName: group),
+              let value = defaults.string(forKey: targetKey),
+              !value.isEmpty
+        else { return nil }
+        return value
+    }
+}
+
 private func code(_ language: Locale.Language) -> String {
     language.languageCode?.identifier ?? language.minimalIdentifier
 }
@@ -130,6 +152,10 @@ struct OnboardingView: View {
     @State private var sourceInstalled: Bool?
     @State private var targetInstalled: Bool?
 
+    /// The extension's pinned target, read from the shared app group. Showing it
+    /// here is the point of sharing: the app can now say which pack the
+    /// extension will actually need instead of guessing.
+    @State private var extensionTarget: String?
     @State private var configuration: TranslationSession.Configuration?
     @State private var poll: Task<Void, Never>?
     @State private var prepareError: String?
@@ -158,6 +184,7 @@ struct OnboardingView: View {
             }
         }
         .onReceive(didBecomeActive) { _ in
+            extensionTarget = ExtensionSettings.target
             Task { await refreshStatus() }
         }
         .onDisappear { poll?.cancel() }
@@ -185,9 +212,18 @@ struct OnboardingView: View {
             Text("Settings › Apps › Safari › Extensions › QuickGlot, then allow it on the sites you want.")
                 .foregroundStyle(.secondary)
 #endif
-            Text("Pick the language to translate into from the extension's toolbar button.")
+            if let extensionTarget, let language = languages.first(where: { code($0) == extensionTarget }) {
+                Label(
+                    "The extension translates into \(name(language))",
+                    systemImage: "checkmark.circle"
+                )
                 .font(.callout)
                 .foregroundStyle(.secondary)
+            } else {
+                Text("The extension picks a language automatically. Choose a fixed one from its toolbar button if you prefer.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
         }
     }
 
@@ -448,10 +484,17 @@ struct OnboardingView: View {
         languages = found.sorted { name($0) < name($1) }
 
         if let english = languages.first(where: { code($0) == "en" }) { source = english }
-        let preferred = Locale.preferredLanguages.map(Locale.Language.init(identifier:))
-        if let first = preferred.first(where: { code($0) != code(source) }),
-           let match = languages.first(where: { code($0) == code(first) }) {
+
+        extensionTarget = ExtensionSettings.target
+        if let pinned = extensionTarget,
+           let match = languages.first(where: { code($0) == pinned }) {
             target = match
+        } else {
+            let preferred = Locale.preferredLanguages.map(Locale.Language.init(identifier:))
+            if let first = preferred.first(where: { code($0) != code(source) }),
+               let match = languages.first(where: { code($0) == code(first) }) {
+                target = match
+            }
         }
         await refreshStatus()
     }
