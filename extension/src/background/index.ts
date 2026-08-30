@@ -1,6 +1,6 @@
 import {
   MAX_SELECTION_LENGTH,
-  TARGET_SETTING,
+  type SettingsResponse,
   type TranslateRequest,
   type TranslateResponse,
 } from '../shared/messages'
@@ -48,21 +48,42 @@ async function translate(req: TranslateRequest): Promise<TranslateResponse> {
   }
 }
 
-/** The pinned target language, or undefined to let the native side choose. */
+/**
+ * The pinned target, cached for this worker's lifetime. It is only needed to key
+ * the response cache — the native side reads the same shared setting and would
+ * resolve the target anyway.
+ */
+let pinnedTarget: string | undefined
+let targetLoaded = false
+
 async function resolveTarget(): Promise<string | undefined> {
+  if (targetLoaded) return pinnedTarget
   try {
-    const stored = await browser.storage.local.get(TARGET_SETTING)
-    const value = stored[TARGET_SETTING]
-    return typeof value === 'string' && value ? value : undefined
+    const res = (await browser.runtime.sendNativeMessage(NATIVE_APP, {
+      type: 'settings',
+    })) as SettingsResponse | undefined
+    pinnedTarget = res && res.ok && res.target ? res.target : undefined
   } catch {
-    return undefined
+    pinnedTarget = undefined
   }
+  targetLoaded = true
+  return pinnedTarget
 }
 
 browser.runtime.onMessage.addListener(
   (message: unknown): Promise<TranslateResponse> | undefined => {
-    const req = message as TranslateRequest
-    if (!req || req.type !== 'translate') return undefined
+    const req = message as TranslateRequest | { type: 'targetChanged'; target: string }
+    if (!req) return undefined
+
+    if (req.type === 'targetChanged') {
+      pinnedTarget = req.target || undefined
+      targetLoaded = true
+      // Entries keyed to the old target would answer in the wrong language.
+      cache.clear()
+      return undefined
+    }
+
+    if (req.type !== 'translate') return undefined
 
     const text = typeof req.text === 'string' ? req.text.trim() : ''
     if (!text) {

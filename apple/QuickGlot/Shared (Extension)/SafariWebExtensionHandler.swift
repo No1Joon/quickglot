@@ -26,6 +26,7 @@ private enum Failure: String {
 private enum Payload {
     case success(text: String, source: String, target: String)
     case languages([[String: String]])
+    case settings(target: String?, languages: [[String: String]])
     case failure(Failure, String)
 
     /// Log-safe description: never includes the selected text or its translation.
@@ -33,6 +34,7 @@ private enum Payload {
         switch self {
         case let .success(_, source, target): return "ok \(source)->\(target)"
         case let .languages(list): return "languages \(list.count)"
+        case let .settings(target, list): return "settings target=\(target ?? "auto") langs=\(list.count)"
         case let .failure(error, _): return "fail \(error.rawValue)"
         }
     }
@@ -43,8 +45,43 @@ private enum Payload {
             return ["ok": true, "text": text, "source": source, "target": target]
         case let .languages(list):
             return ["ok": true, "languages": list]
+        case let .settings(target, list):
+            return ["ok": true, "target": target ?? "", "languages": list]
         case let .failure(error, message):
             return ["ok": false, "error": error.rawValue, "message": message]
+        }
+    }
+}
+
+// MARK: - Shared settings
+
+/// The target language lives in the app group so the app and the extension read
+/// one value instead of each keeping its own. The group identifier is mirrored
+/// into Info.plist by the build, where the team prefix is expanded — hardcoding
+/// it here would put the team id in a public repository.
+enum SharedSettings {
+    static let targetKey = "targetLanguage"
+
+    static var defaults: UserDefaults? {
+        guard let group = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String,
+              !group.isEmpty
+        else { return nil }
+        return UserDefaults(suiteName: group)
+    }
+
+    /// nil means automatic — pick from the user's preferred languages.
+    static var target: String? {
+        get {
+            guard let value = defaults?.string(forKey: targetKey), !value.isEmpty else { return nil }
+            return value
+        }
+        set {
+            guard let defaults else { return }
+            if let newValue, !newValue.isEmpty {
+                defaults.set(newValue, forKey: targetKey)
+            } else {
+                defaults.removeObject(forKey: targetKey)
+            }
         }
     }
 }
@@ -188,6 +225,23 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
         }
 
         switch body["type"] as? String {
+        case "settings":
+            Task {
+                let payload = Payload.settings(
+                    target: SharedSettings.target,
+                    languages: await Translator.supportedTargets()
+                )
+                log.debug("result: \(payload.summary, privacy: .public)")
+                Self.complete(context, with: payload)
+            }
+
+        case "setTarget":
+            SharedSettings.target = body["target"] as? String
+            log.debug("setTarget: \(SharedSettings.target ?? "auto", privacy: .public)")
+            Self.complete(context, with: .settings(
+                target: SharedSettings.target, languages: []
+            ))
+
         case "languages":
             Task {
                 let payload = Payload.languages(await Translator.supportedTargets())
@@ -202,7 +256,9 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 Self.complete(context, with: .failure(.unknown, "Empty selection"))
                 return
             }
-            let requestedTarget = body["target"] as? String
+            // The extension may pin a target per request; otherwise the shared
+            // setting decides, and only then does the preference list.
+            let requestedTarget = (body["target"] as? String) ?? SharedSettings.target
             log.debug("request: \(text.count, privacy: .public) chars")
 
             Task {

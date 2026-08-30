@@ -1,10 +1,19 @@
 /** Wire protocol shared by content script, background, and the native Swift handler. */
 
-/** Setting key in browser.storage.local. Empty string means automatic. */
-export const TARGET_SETTING = 'targetLanguage'
+export interface SettingsRequest {
+  type: 'settings'
+}
 
-export interface LanguagesRequest {
-  type: 'languages'
+export interface SetTargetRequest {
+  type: 'setTarget'
+  /** BCP-47 tag, or empty string for automatic. */
+  target: string
+}
+
+/** Sent from the popup to the background when the pinned target changes. */
+export interface TargetChangedMessage {
+  type: 'targetChanged'
+  target: string
 }
 
 export interface Language {
@@ -14,8 +23,8 @@ export interface Language {
   name: string
 }
 
-export type LanguagesResponse =
-  | { ok: true; languages: Language[] }
+export type SettingsResponse =
+  | { ok: true; target: string; languages: Language[] }
   | { ok: false; message: string }
 
 export interface TranslateRequest {
