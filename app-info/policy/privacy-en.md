@@ -28,7 +28,7 @@ This is done by the operating system's translation feature, not by QuickGlot, an
 
 ## What is stored
 
-One setting — the language you chose to translate into — kept in the browser's local extension storage on your device. Nothing else is written anywhere.
+One setting — the language you chose to translate into — kept on your device in storage shared between the app and the extension. Nothing else is written anywhere.
 
 Recently translated selections are held in memory only, to avoid re-translating the same phrase, and are discarded when the browser releases the extension.
 
@@ -42,9 +42,8 @@ QuickGlot has no accounts. There is no sign-up, no sign-in, and no user identifi
 |---|---|
 | Access to the pages you visit | Translating a selection requires reading the selection, which can only be done from within the page. Any page may be the one you want to translate, so this cannot be narrowed ahead of time. Safari lets you restrict it per site in Settings → Extensions. |
 | Native messaging | Carries the selected text to the app's local translation handler on the same device. It talks only to QuickGlot's own handler. |
-| Storage | Remembers the target language you picked. |
 
-QuickGlot does **not** request permission for tabs, browsing history, cookies, downloads, or any remote host.
+Those two are the only permissions QuickGlot requests. It does **not** ask for tabs, browsing history, cookies, downloads, browser storage, or any remote host.
 
 ## Safeguards
 
