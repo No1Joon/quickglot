@@ -4,11 +4,14 @@
  * 1. A NUL byte in a text file. It is invisible in an editor, compiles fine, and
  *    silently removes the file from grep, ripgrep, and every code search — so a
  *    review reports "no matches" for a file it never opened.
- * 2. An Apple Team ID in the Xcode project. Xcode writes one in whenever signing
- *    is touched in its UI, and this repository is public and keeps that value in
- *    the QUICKGLOT_TEAM_ID environment variable instead.
+ * 2. An Apple Team ID in any tracked file. Xcode writes one into the project
+ *    whenever signing is touched in its UI, and a build note in a document
+ *    publishes it just as widely. This repository is public and keeps that value
+ *    in the QUICKGLOT_TEAM_ID environment variable instead.
+ * 3. A tracked file that .gitignore excludes. The ignore rule does nothing once
+ *    the file is in the index, so the exclusion silently stops holding.
  *
- * Both have happened twice here, which is why they are checked rather than
+ * All three have happened here, which is why they are checked rather than
  * documented.
  */
 import { execFileSync } from 'node:child_process'
@@ -20,11 +23,12 @@ const TEXT_EXTENSIONS = new Set([
   '.swift', '.sh', '.svg', '.entitlements', '.plist', '.pbxproj',
 ])
 
-const files = execFileSync('git', ['ls-files', '-z'], { encoding: 'buffer' })
+const tracked = execFileSync('git', ['ls-files', '-z'], { encoding: 'buffer' })
   .toString('utf8')
   .split('\0')
   .filter(Boolean)
-  .filter((f) => TEXT_EXTENSIONS.has(extname(f)))
+
+const files = tracked.filter((f) => TEXT_EXTENSIONS.has(extname(f)))
 
 const problems = []
 for (const file of files) {
@@ -36,20 +40,40 @@ for (const file of files) {
   }
 }
 
-// Xcode writes DEVELOPMENT_TEAM into the project whenever signing is edited in
-// its UI. The value is a personal identifier and the build takes it from the
-// environment, so it must not be committed.
-const projects = files.filter((f) => f.endsWith('.pbxproj'))
-for (const file of projects) {
+// An Apple Team ID is ten uppercase alphanumerics with at least one of each.
+// The value itself cannot be written here to compare against — that would be the
+// leak — so a line is flagged when it names a team and carries a token of that
+// shape, plus the App Group prefix form, which names no team at all.
+const TEAM_CONTEXT = /DEVELOPMENT_TEAM|TEAM_ID|TEAMID|TEAM ID|TEAM IDENTIFIER/
+const SHAPE = '(?=[0-9A-Z]{10}\\b)(?=[0-9A-Z]*[0-9])(?=[0-9A-Z]*[A-Z])[0-9A-Z]{10}'
+const TEAM_ID = new RegExp(`\\b${SHAPE}\\b`)
+const GROUP_PREFIX = new RegExp(`\\b${SHAPE}\\.group\\.`)
+
+for (const file of files) {
   const text = readFileSync(file, 'utf8')
   for (const [index, line] of text.split('\n').entries()) {
-    const match = /DEVELOPMENT_TEAM = ([^;"\s][^;]*);/.exec(line)
-    if (match) {
-      problems.push(
-        `${file}:${index + 1} commits an Apple Team ID (${match[1].trim()})`,
-      )
+    const grouped = GROUP_PREFIX.exec(line)
+    const named = TEAM_CONTEXT.test(line.toUpperCase()) ? TEAM_ID.exec(line) : null
+    const found = grouped?.[0].split('.')[0] ?? named?.[0]
+    if (found) {
+      problems.push(`${file}:${index + 1} commits an Apple Team ID (${found})`)
     }
   }
+}
+
+// An ignored path that is nonetheless tracked. .gitignore is advisory once a
+// file is in the index — `git add -f`, or an entry added after the fact, leaves
+// it committed and the ignore rule silently means nothing.
+const ignoredButTracked = execFileSync(
+  'git',
+  ['ls-files', '--cached', '--ignored', '--exclude-standard', '-z'],
+  { encoding: 'buffer' },
+)
+  .toString('utf8')
+  .split('\0')
+  .filter(Boolean)
+for (const file of ignoredButTracked) {
+  problems.push(`${file} is ignored by .gitignore but tracked`)
 }
 
 // App Store Connect rejects an iOS app icon that carries an alpha channel, and
@@ -74,11 +98,13 @@ if (problems.length > 0) {
   for (const p of problems) console.error(`  ${p}`)
   console.error(
     '\nA NUL byte should become an escape sequence (\\u0000) if it is intentional.' +
-      '\nA Team ID should be removed; pass it as QUICKGLOT_TEAM_ID at build time.',
+      '\nA Team ID should be removed; pass it as QUICKGLOT_TEAM_ID at build time.' +
+      '\nAn ignored-but-tracked path needs git rm --cached.',
   )
   process.exit(1)
 }
 
 console.log(
-  `checked ${files.length} text files: no NUL bytes, no committed Team ID, iOS icon opaque`,
+  `checked ${files.length} text files of ${tracked.length} tracked: ` +
+    'no NUL bytes, no Team ID anywhere, nothing ignored-but-tracked, iOS icon opaque',
 )
