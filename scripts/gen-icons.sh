@@ -22,6 +22,11 @@ command -v magick >/dev/null || { echo "ImageMagick required: brew install image
 # ImageMagick's built-in SVG renderer ignores linearGradient and fills the shape
 # black without reporting an error, so rasterising goes through librsvg instead.
 command -v rsvg-convert >/dev/null || { echo "librsvg required: brew install librsvg" >&2; exit 1; }
+
+# ImageMagick stamps a creation time into every PNG, so identical artwork would
+# produce different bytes on each run and dirty the repository for no reason.
+# Excluding just the time chunks keeps the colour profile that -strip would drop.
+export MAGICK_STABLE="-define png:exclude-chunk=date,time"
 for f in "$SQUARE" "$TILE"; do [ -f "$f" ] || { echo "missing $f" >&2; exit 1; }; done
 
 # Rasterise the vector sources once at full size, then downsample from those —
@@ -36,7 +41,7 @@ mkdir -p "$EXT_ICONS"
 for size in 48 96 128 256 512; do
   # PNG32 keeps every slot truecolour+alpha; left alone, ImageMagick quietly
   # switches small images to an indexed palette and the gradient can band.
-  magick "$WORK/tile.png" -resize "${size}x${size}" "PNG32:$EXT_ICONS/icon-${size}.png"
+  magick "$WORK/tile.png" $MAGICK_STABLE -resize "${size}x${size}" "PNG32:$EXT_ICONS/icon-${size}.png"
   echo "  icon-${size}.png"
 done
 
@@ -47,15 +52,18 @@ echo "macOS app icon"
 for slot in 16@1x:16 16@2x:32 32@1x:32 32@2x:64 128@1x:128 128@2x:256 256@1x:256 256@2x:512 512@1x:512 512@2x:1024; do
   name="${slot%%:*}"
   px="${slot##*:}"
-  plate=$(( px * 824 / 1024 ))
-  magick "$WORK/tile.png" -resize "${plate}x${plate}" \
+  # Apple's macOS grid puts an 824pt plate on a 1024pt canvas. Integer division
+  # truncates, which costs the 16, 32 and 64px slots a whole pixel — several
+  # percent at those sizes — so round instead.
+  plate=$(( (px * 824 + 512) / 1024 ))
+  magick "$WORK/tile.png" $MAGICK_STABLE -resize "${plate}x${plate}" \
     -background none -gravity center -extent "${px}x${px}" \
     "PNG32:$APPICON/mac-icon-${name}.png"
   echo "  mac-icon-${name}.png (${px}px, plate ${plate}px)"
 done
 
 echo "iOS app icon"
-magick "$WORK/square.png" -resize 1024x1024 \
+magick "$WORK/square.png" $MAGICK_STABLE -resize 1024x1024 \
   -background white -alpha remove -alpha off \
   "PNG24:$APPICON/universal-icon-1024@1x.png"
 echo "  universal-icon-1024@1x.png"

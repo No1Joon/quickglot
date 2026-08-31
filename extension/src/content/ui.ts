@@ -67,7 +67,7 @@ const STYLE = `
 }
 `
 
-import { placement, RTL_LANGUAGES, toPageCoordinates } from '../shared/logic'
+import { CALLOUT_GAP, placement, RTL_LANGUAGES, toPageCoordinates } from '../shared/logic'
 
 export interface Anchor {
   /** Viewport coordinates of the selection, as measured when it was made. */
@@ -122,7 +122,7 @@ export function show(anchor: Anchor, content: Content): void {
   if (content.kind === 'chip') {
     const chip = document.createElement('button')
     chip.className = 'chip'
-    chip.textContent = 'Translate'
+    chip.textContent = browser.i18n.getMessage('chipTranslate')
     chip.addEventListener('click', (e) => {
       e.stopPropagation()
       content.onTap()
@@ -163,12 +163,12 @@ export function show(anchor: Anchor, content: Content): void {
   }
 
   shadow.append(layer)
-  position(layer, anchor)
+  position(layer, anchor, content.kind === 'chip')
 }
 
 /**
- * Anchors below the selection: on iOS the system callout (Copy / Look Up)
- * claims the space above it, so sitting underneath avoids overlapping it.
+ * Anchors above the selection: the iOS callout (Copy / Look Up) takes the space
+ * below it, so sitting on top is what avoids overlapping it.
  *
  * Placement is decided in viewport space — using the coordinates captured when
  * the selection was made, not the live ones — and then written out in page
@@ -176,12 +176,17 @@ export function show(anchor: Anchor, content: Content): void {
  * describes while the page scrolls, and the loading and result panels land in
  * the same spot even if the user scrolled while the translation was running.
  */
-function position(layer: HTMLElement, anchor: Anchor): void {
+function position(layer: HTMLElement, anchor: Anchor, isChip = false): void {
   const { width, height } = layer.getBoundingClientRect()
   const spot = placement(
     anchor,
     { width, height },
     { width: window.innerWidth, height: window.innerHeight },
+    {
+      prefer: 'above',
+      gap: CALLOUT_GAP,
+      align: isChip ? 'end' : 'center',
+    },
   )
   const page = toPageCoordinates(spot, anchor)
   layer.style.left = `${page.left}px`

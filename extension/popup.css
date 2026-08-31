@@ -1,11 +1,52 @@
 :root { color-scheme: light dark; }
-body { margin: 0; }
-.wrap {
-  width: 260px;
-  padding: 14px;
-  font: 13px/1.45 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font: 15px/1.45 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
-label { display: block; font-weight: 600; margin-bottom: 6px; }
-select { width: 100%; font: inherit; }
-.hint { margin: 10px 0 0; opacity: 0.6; font-size: 12px; }
-.hint.error { opacity: 1; color: #d1453b; }
+
+/*
+ * On macOS the popup is a small panel sized by its content; on iOS Safari it is
+ * presented as a full-width sheet. A fixed width fits the first and leaves the
+ * second mostly empty, so the width is a floor rather than a value.
+ */
+.wrap {
+  min-width: 280px;
+  max-width: 100%;
+  padding: 16px 18px 20px;
+}
+
+.label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.field { position: relative; }
+
+select {
+  width: 100%;
+  font: inherit;
+  /* Comfortable as a touch target, not just as a pointer target. */
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+}
+
+.hint {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.65;
+}
+
+.hint.error {
+  opacity: 1;
+  color: #d1453b;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hint.error { color: #ff6b60; }
+}

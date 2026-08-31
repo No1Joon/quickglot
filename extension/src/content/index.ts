@@ -1,6 +1,21 @@
 import { MAX_SELECTION_LENGTH, type TranslateResponse } from '../shared/messages'
 import { dismiss, isOwnElement, show, type Anchor } from './ui'
 
+declare global {
+  interface Window {
+    __quickglotInjected?: true
+  }
+}
+
+/**
+ * Updating the extension while a tab is open injects the new content script
+ * without tearing down the one already running, and both then answer the same
+ * selection — two chips, one per build. Content scripts of an extension share
+ * one isolated world per frame, so a flag on window is enough to stand down.
+ */
+const alreadyRunning = window.__quickglotInjected === true
+window.__quickglotInjected = true
+
 /**
  * macOS: releasing the mouse over a selection translates immediately.
  * iOS: the system callout owns the selection gesture, so we surface a chip
@@ -66,15 +81,15 @@ function describe(res: Extract<TranslateResponse, { ok: false }>): {
   switch (res.error) {
     case 'notInstalled':
       return {
-        message: 'This language pair is not downloaded yet.',
-        hint: 'Open the QuickGlot app once to download it — then it works offline.',
+        message: browser.i18n.getMessage('errorNotInstalled'),
+        hint: browser.i18n.getMessage('errorNotInstalledHint'),
       }
     case 'unsupported':
-      return { message: 'Apple’s on-device models don’t cover this language pair.' }
+      return { message: browser.i18n.getMessage('errorUnsupported') }
     case 'undetectable':
-      return { message: 'Could not tell what language that is.' }
+      return { message: browser.i18n.getMessage('errorUndetectable') }
     default:
-      return { message: res.message || 'Translation failed.' }
+      return { message: res.message || browser.i18n.getMessage('errorGeneric') }
   }
 }
 
@@ -126,48 +141,76 @@ async function translate(selected: Selected): Promise<void> {
   }
 }
 
+/**
+ * True once a tap has produced a result. Tapping the chip clears the text
+ * selection on iOS, which fires selectionchange with nothing selected — that
+ * must not dismiss the translation the tap just asked for.
+ */
+let resultPinned = false
+
 function close(): void {
   sequence++
+  resultPinned = false
   dismiss()
 }
 
-if (IS_TOUCH) {
-  let timer: number | undefined
-  document.addEventListener('selectionchange', () => {
-    window.clearTimeout(timer)
-    timer = window.setTimeout(() => {
-      const selected = readSelection()
-      if (!selected) {
-        close()
-        return
-      }
-      sequence++
-      show(selected.anchor, { kind: 'chip', onTap: () => void translate(selected) })
-    }, SELECTION_DEBOUNCE_MS)
-  })
-} else {
-  document.addEventListener('mouseup', (event) => {
-    if (isOwnElement(event.target)) return
-    // The selection is not updated until after mouseup dispatches.
-    window.setTimeout(() => {
-      const selected = readSelection()
-      if (!selected) {
-        close()
-        return
-      }
-      void translate(selected)
-    }, 0)
+function start(): void {
+  if (IS_TOUCH) {
+    let timer: number | undefined
+    document.addEventListener('selectionchange', () => {
+      window.clearTimeout(timer)
+      timer = window.setTimeout(() => {
+        const selected = readSelection()
+        if (!selected) {
+          if (!resultPinned) close()
+          return
+        }
+        resultPinned = false
+        sequence++
+        show(selected.anchor, {
+          kind: 'chip',
+          onTap: () => {
+            resultPinned = true
+            void translate(selected)
+          },
+        })
+      }, SELECTION_DEBOUNCE_MS)
+    })
+
+    // With the result pinned, a tap outside it is the way to dismiss.
+    document.addEventListener(
+      'pointerdown',
+      (event) => {
+        if (!isOwnElement(event.target)) close()
+      },
+      true,
+    )
+  } else {
+    document.addEventListener('mouseup', (event) => {
+      if (isOwnElement(event.target)) return
+      // The selection is not updated until after mouseup dispatches.
+      window.setTimeout(() => {
+        const selected = readSelection()
+        if (!selected) {
+          close()
+          return
+        }
+        void translate(selected)
+      }, 0)
+    })
+
+    document.addEventListener('mousedown', (event) => {
+      if (!isOwnElement(event.target)) close()
+    })
+  }
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') close()
   })
 
-  document.addEventListener('mousedown', (event) => {
-    if (!isOwnElement(event.target)) close()
-  })
+  // Deliberately not dismissed on scroll: the panel is anchored to the page, so
+  // it stays with the text it translated. A resize does invalidate the anchor.
+  window.addEventListener('resize', close)
 }
 
-document.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') close()
-})
-
-// Deliberately not dismissed on scroll: the panel is anchored to the page, so
-// it stays with the text it translated. A resize does invalidate the anchor.
-window.addEventListener('resize', close)
+if (!alreadyRunning) start()

@@ -1,0 +1,18 @@
+{
+  "extensionName": { "message": "QuickGlot" },
+  "extensionDescription": { "message": "Translate selected text on-device, without leaving the page." },
+
+  "popupTranslateInto": { "message": "Translate into" },
+  "popupAutomatic": { "message": "Automatic" },
+  "popupAutoHint": { "message": "Automatic picks the first of your system languages that differs from the selected text." },
+  "popupPinnedHint": { "message": "Text already in this language is left alone." },
+  "popupSettingsFailed": { "message": "Could not read the settings." },
+  "popupLanguageGone": { "message": "$CODE$ is no longer available — falling back to Automatic.", "placeholders": { "code": { "content": "$1" } } },
+
+  "errorNotInstalled": { "message": "This language pair is not downloaded yet." },
+  "errorNotInstalledHint": { "message": "Open the QuickGlot app once to download it — then it works offline." },
+  "errorUnsupported": { "message": "Apple’s on-device models don’t cover this language pair." },
+  "errorUndetectable": { "message": "Could not tell what language that is." },
+  "errorGeneric": { "message": "Translation failed." },
+  "chipTranslate": { "message": "Translate" }
+}

@@ -1,10 +1,10 @@
 <!-- Shared artwork. icon-square.svg and icon-tile.svg differ only in the plate
-     behind this mark, so edit the bars here and both stay in step. -->
+     behind this mark, so edit the letterform here and both stay in step.
+
+     A Q rather than a magnifier: the ring plus a diagonal tail is the universal
+     search glyph, and this app does not search. The tail is horizontal and in
+     the accent colour, which reads as the line of text being translated. -->
 <g id="mark">
-  <!-- The selection highlight is what makes this read as "selected text"
-       rather than a generic list; it fades out cleanly at small sizes. -->
-  <rect x="176" y="436" width="512" height="152" rx="42" fill="#FFFFFF" opacity="0.20"/>
-  <rect x="216" y="316" width="592" height="96" rx="48" fill="#FFFFFF"/>
-  <rect x="216" y="464" width="448" height="96" rx="48" fill="#FFD166"/>
-  <rect x="216" y="612" width="528" height="96" rx="48" fill="#FFFFFF"/>
+  <circle cx="512" cy="452" r="252" fill="none" stroke="#FFFFFF" stroke-width="118"/>
+  <rect x="470" y="700" width="330" height="118" rx="59" fill="#FFD166"/>
 </g>

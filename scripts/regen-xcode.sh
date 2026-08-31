@@ -158,6 +158,16 @@ else
   echo "QUICKGLOT_TEAM_ID not set - leaving signing team to Xcode"
 fi
 
+# The converter copies the manifest icons straight into the asset catalogue,
+# which overwrites the slots gen-icons.sh produced — including turning the iOS
+# icon back into RGBA, which App Store Connect rejects.
+if command -v magick >/dev/null && command -v rsvg-convert >/dev/null; then
+  "$REPO/scripts/gen-icons.sh" >/dev/null
+  echo "icons regenerated"
+else
+  echo "warning: magick/rsvg-convert missing - app icons are the converter's, run scripts/gen-icons.sh" >&2
+fi
+
 echo
 echo "Extension resources now referenced by the project:"
 grep -o 'path = [^;]*dist[^;]*;' "$PBX" | sort -u

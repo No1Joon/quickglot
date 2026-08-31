@@ -62,6 +62,19 @@ class ViewController: PlatformViewController {
 
 // MARK: - Onboarding
 
+/// The app's strings, localised in code.
+///
+/// A string catalogue would be idiomatic, but `scripts/regen-xcode.sh` rebuilds
+/// the Xcode project from the converter and would drop a resource file it does
+/// not know how to restore. Keeping the text here survives regeneration.
+private enum L {
+    private static let usesKorean = (Locale.preferredLanguages.first ?? "en").hasPrefix("ko")
+
+    static func t(_ english: String, _ korean: String) -> String {
+        usesKorean ? korean : english
+    }
+}
+
 #if os(macOS)
 private let didBecomeActive = NotificationCenter.default
     .publisher(for: NSApplication.didBecomeActiveNotification)
@@ -193,7 +206,7 @@ struct OnboardingView: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("QuickGlot").font(.largeTitle.bold())
-            Text("Select text in Safari and it is translated on device.")
+            Text(L.t("Select text in Safari and it is translated on device.", "Safari 에서 텍스트를 선택하면 기기 안에서 번역합니다."))
                 .foregroundStyle(.secondary)
         }
     }
@@ -201,26 +214,26 @@ struct OnboardingView: View {
     @ViewBuilder
     private var enableSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("1. Turn on the extension").font(.headline)
+            Text(L.t("1. Turn on the extension", "1. 확장 프로그램 켜기")).font(.headline)
 #if os(macOS)
-            Button("Open Safari Extension Settings") {
+            Button(L.t("Open Safari Extension Settings", "Safari 확장 프로그램 설정 열기")) {
                 SFSafariApplication.showPreferencesForExtension(
                     withIdentifier: extensionBundleIdentifier
                 ) { _ in }
             }
 #else
-            Text("Settings › Apps › Safari › Extensions › QuickGlot, then allow it on the sites you want.")
+            Text(L.t("Settings › Apps › Safari › Extensions › QuickGlot, then allow it on the sites you want.", "설정 › 앱 › Safari › 확장 프로그램 › QuickGlot 을 켠 뒤, 사용할 사이트에 권한을 허용하세요."))
                 .foregroundStyle(.secondary)
 #endif
             if let extensionTarget, let language = languages.first(where: { code($0) == extensionTarget }) {
                 Label(
-                    "The extension translates into \(name(language))",
+                    L.t("The extension translates into \(name(language))", "확장은 \(name(language)) 로 번역합니다"),
                     systemImage: "checkmark.circle"
                 )
                 .font(.callout)
                 .foregroundStyle(.secondary)
             } else {
-                Text("The extension picks a language automatically. Choose a fixed one from its toolbar button if you prefer.")
+                Text(L.t("The extension picks a language automatically. Choose a fixed one from its toolbar button if you prefer.", "확장은 번역할 언어를 자동으로 고릅니다. 고정하려면 툴바 버튼에서 선택하세요."))
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -229,8 +242,8 @@ struct OnboardingView: View {
 
     private var packSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("2. Download the languages you need").font(.headline)
-            Text("Downloaded once, then translation works offline.")
+            Text(L.t("2. Download the languages you need", "2. 필요한 언어 받기")).font(.headline)
+            Text(L.t("Downloaded once, then translation works offline.", "한 번 받아두면 이후에는 오프라인에서 번역됩니다."))
                 .font(.callout)
                 .foregroundStyle(.secondary)
 
@@ -248,7 +261,7 @@ struct OnboardingView: View {
     }
 
     /// Each language carries its own state, because a pair is often half ready
-    /// and "Download" on the pair says nothing about which half is missing.
+    /// and L.t("Download", "받기") on the pair says nothing about which half is missing.
     @ViewBuilder
     private func languageRow(
         _ label: String,
@@ -266,11 +279,11 @@ struct OnboardingView: View {
             Spacer(minLength: 8)
             switch installed {
             case .some(true):
-                Label("On device", systemImage: "checkmark.circle.fill")
+                Label(L.t("On device", "기기에 있음"), systemImage: "checkmark.circle.fill")
                     .foregroundStyle(.green)
                     .font(.caption)
             case .some(false):
-                Label("Not downloaded", systemImage: "arrow.down.circle")
+                Label(L.t("Not downloaded", "받지 않음"), systemImage: "arrow.down.circle")
                     .foregroundStyle(.secondary)
                     .font(.caption)
             case nil:
@@ -283,17 +296,17 @@ struct OnboardingView: View {
     private var statusRow: some View {
         switch phase {
         case .checking:
-            HStack { ProgressView().controlSize(.small); Text("Checking…").foregroundStyle(.secondary) }
+            HStack { ProgressView().controlSize(.small); Text(L.t("Checking…", "확인 중…")).foregroundStyle(.secondary) }
 
         case .ready:
-            Label("Ready — this pair translates offline", systemImage: "checkmark.circle.fill")
+            Label(L.t("Ready — this pair translates offline", "준비됨 — 이 언어쌍은 오프라인에서 번역됩니다"), systemImage: "checkmark.circle.fill")
                 .foregroundStyle(.green)
 
         case .needsDownload:
             HStack {
-                Button("Download") { startDownload() }
+                Button(L.t("Download", "받기")) { startDownload() }
                 Spacer()
-                Button("Recheck") { Task { await refreshStatus() } }
+                Button(L.t("Recheck", "다시 확인")) { Task { await refreshStatus() } }
                     .buttonStyle(.borderless)
             }
 
@@ -301,9 +314,9 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text("Downloading… \(elapsedText(elapsed))").monospacedDigit()
+                    Text(L.t("Downloading… ", "다운로드 중… ") + elapsedText(elapsed)).monospacedDigit()
                 }
-                Text("You can close the system dialog. The download continues, and this screen updates when it finishes.")
+                Text(L.t("You can close the system dialog. The download continues, and this screen updates when it finishes.", "시스템 대화상자는 닫으셔도 됩니다. 다운로드는 계속되고, 끝나면 이 화면이 바뀝니다."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -312,28 +325,28 @@ struct OnboardingView: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
-                    Text("Still downloading… \(elapsedText(elapsed))").monospacedDigit()
+                    Text(L.t("Still downloading… ", "계속 다운로드 중… ") + elapsedText(elapsed)).monospacedDigit()
                 }
-                Text("This is taking a while. Large packs can take several minutes. If you cancelled the download, or the connection dropped, start it again.")
+                Text(L.t("This is taking a while. Large packs can take several minutes. If you cancelled the download, or the connection dropped, start it again.", "오래 걸리고 있습니다. 큰 언어팩은 몇 분이 걸리기도 합니다. 다운로드를 취소했거나 연결이 끊겼다면 다시 시작하세요."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if let prepareError {
                     Text(prepareError).font(.caption).foregroundStyle(.secondary)
                 }
                 HStack {
-                    Button("Try again") { startDownload() }
+                    Button(L.t("Try again", "다시 시도")) { startDownload() }
                     systemSettingsButton
-                    Button("Recheck") { Task { await refreshStatus() } }
+                    Button(L.t("Recheck", "다시 확인")) { Task { await refreshStatus() } }
                         .buttonStyle(.borderless)
                 }
             }
 
         case .blocked:
             VStack(alignment: .leading, spacing: 8) {
-                Label("The system is not accepting download requests right now",
+                Label(L.t("The system is not accepting download requests right now", "시스템이 지금 다운로드 요청을 받지 않습니다"),
                       systemImage: "exclamationmark.triangle")
                     .foregroundStyle(.orange)
-                Text("This usually means a download was already started or cancelled recently. Pressing Download again will not bring the dialog back — manage the languages directly instead.")
+                Text(L.t("This usually means a download was already started or cancelled recently. Pressing Download again will not bring the dialog back — manage the languages directly instead.", "이미 시작했거나 최근에 취소한 다운로드가 있으면 이렇게 됩니다. 받기를 다시 눌러도 대화상자는 돌아오지 않으니 언어를 직접 관리하세요."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 if let prepareError {
@@ -341,17 +354,17 @@ struct OnboardingView: View {
                 }
                 HStack {
                     systemSettingsButton
-                    Button("Recheck") { Task { await refreshStatus() } }
+                    Button(L.t("Recheck", "다시 확인")) { Task { await refreshStatus() } }
                         .buttonStyle(.borderless)
                 }
             }
 
         case .unsupported:
-            Label("Apple's on-device models don't cover this pair", systemImage: "exclamationmark.triangle")
+            Label(L.t("Apple's on-device models don't cover this pair", "Apple 의 온디바이스 모델이 이 언어쌍을 지원하지 않습니다"), systemImage: "exclamationmark.triangle")
                 .foregroundStyle(.secondary)
 
         case .sameLanguage:
-            Text("Pick two different languages.").foregroundStyle(.secondary)
+            Text(L.t("Pick two different languages.", "서로 다른 두 언어를 고르세요.")).foregroundStyle(.secondary)
         }
     }
 
@@ -360,13 +373,13 @@ struct OnboardingView: View {
     @ViewBuilder
     private var systemSettingsButton: some View {
 #if os(macOS)
-        Button("Open Language Settings") {
+        Button(L.t("Open Language Settings", "언어 설정 열기")) {
             if let url = URL(string: "x-apple.systempreferences:com.apple.Localization-Settings.extension") {
                 NSWorkspace.shared.open(url)
             }
         }
 #else
-        Text("Manage in Settings › General › Language & Region.")
+        Text(L.t("Manage in Settings › General › Language & Region.", "설정 › 일반 › 언어 및 지역 에서 관리하세요."))
             .font(.caption)
             .foregroundStyle(.secondary)
 #endif

@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { cacheKey, placement, RTL_LANGUAGES, toPageCoordinates, GAP, MARGIN } from './logic.ts'
+import {
+  cacheKey,
+  placement,
+  RTL_LANGUAGES,
+  toPageCoordinates,
+  CALLOUT_GAP,
+  GAP,
+  MARGIN,
+} from './logic.ts'
 
 const viewport = { width: 1000, height: 800 }
 const size = { width: 300, height: 200 }
@@ -22,12 +30,24 @@ test('cache key cannot collide by shifting the boundary', () => {
   assert.notEqual(cacheKey({ text: 'rean', target: 'ko' }), cacheKey({ text: '', target: 'korean' }))
 })
 
-test('panel sits below the selection when there is room', () => {
-  const anchor = { top: 100, bottom: 120, left: 400, right: 600 }
+test('panel sits below the selection when nothing asks otherwise', () => {
+  const anchor = { top: 300, bottom: 320, left: 400, right: 600 }
   const { top, left } = placement(anchor, size, viewport)
-  assert.equal(top, 120 + GAP)
+  assert.equal(top, 320 + GAP)
   // horizontally centred on the selection
   assert.equal(left, 500 - size.width / 2)
+})
+
+test('preferring above puts it over the selection, clear of the iOS callout', () => {
+  const anchor = { top: 400, bottom: 420, left: 400, right: 600 }
+  const { top } = placement(anchor, size, viewport, { prefer: 'above', gap: CALLOUT_GAP })
+  assert.equal(top, 400 - size.height - CALLOUT_GAP)
+})
+
+test('preferring above falls back below when the selection is near the top', () => {
+  const anchor = { top: 20, bottom: 40, left: 400, right: 600 }
+  const { top } = placement(anchor, size, viewport, { prefer: 'above', gap: CALLOUT_GAP })
+  assert.equal(top, 40 + CALLOUT_GAP, 'no room above, so it goes below')
 })
 
 test('panel flips above the selection when it would fall off the bottom', () => {
@@ -63,4 +83,28 @@ test('right-to-left targets are recognised', () => {
   assert.ok(RTL_LANGUAGES.has('ar'))
   assert.ok(!RTL_LANGUAGES.has('ko'))
   assert.ok(!RTL_LANGUAGES.has('en'))
+})
+
+test('the chip aligns to the end of the selection, away from the iOS callout', () => {
+  const anchor = { top: 400, bottom: 420, left: 300, right: 700 }
+  const centred = placement(anchor, size, viewport)
+  const aligned = placement(anchor, size, viewport, {
+    align: 'end',
+    gap: CALLOUT_GAP,
+    prefer: 'above',
+  })
+
+  assert.equal(aligned.left + size.width, anchor.right, 'right edges should line up')
+  assert.ok(aligned.left > centred.left, 'end alignment sits right of centre alignment')
+  assert.equal(aligned.top, anchor.top - size.height - CALLOUT_GAP, 'and above the selection')
+})
+
+test('end alignment still respects the viewport margin', () => {
+  const narrow = { top: 100, bottom: 120, left: 0, right: 60 }
+  const { left } = placement(narrow, size, viewport, {
+    align: 'end',
+    gap: CALLOUT_GAP,
+    prefer: 'above',
+  })
+  assert.ok(left >= MARGIN, `left ${left} should respect the margin`)
 })

@@ -2,18 +2,18 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <div class="wrap">
-      <label for="target">Translate into</label>
-      <select id="target" disabled>
-        <option value="">Automatic</option>
-      </select>
-      <p id="hint" class="hint">
-        Automatic picks the first of your system languages that differs from the
-        selected text.
-      </p>
+      <label class="label" for="target" id="label"></label>
+      <div class="field">
+        <select id="target" disabled>
+          <option value=""></option>
+        </select>
+      </div>
+      <p id="hint" class="hint"></p>
     </div>
     <script src="popup.js"></script>
   </body>

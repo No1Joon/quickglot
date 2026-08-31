@@ -1,0 +1,18 @@
+{
+  "extensionName": { "message": "QuickGlot" },
+  "extensionDescription": { "message": "선택한 텍스트를 페이지에서 바로, 기기 안에서 번역합니다." },
+
+  "popupTranslateInto": { "message": "번역할 언어" },
+  "popupAutomatic": { "message": "자동" },
+  "popupAutoHint": { "message": "자동은 시스템 언어 중 선택한 글과 다른 첫 번째 언어를 씁니다." },
+  "popupPinnedHint": { "message": "이미 이 언어인 글은 번역하지 않습니다." },
+  "popupSettingsFailed": { "message": "설정을 읽지 못했습니다." },
+  "popupLanguageGone": { "message": "$CODE$ 는 더 이상 사용할 수 없어 자동으로 되돌립니다.", "placeholders": { "code": { "content": "$1" } } },
+
+  "errorNotInstalled": { "message": "이 언어쌍이 아직 다운로드되지 않았습니다." },
+  "errorNotInstalledHint": { "message": "QuickGlot 앱에서 한 번 받아두면 이후에는 오프라인에서도 됩니다." },
+  "errorUnsupported": { "message": "Apple 의 온디바이스 모델이 이 언어쌍을 지원하지 않습니다." },
+  "errorUndetectable": { "message": "어떤 언어인지 판별하지 못했습니다." },
+  "errorGeneric": { "message": "번역에 실패했습니다." },
+  "chipTranslate": { "message": "번역" }
+}

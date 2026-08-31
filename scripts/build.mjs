@@ -33,6 +33,7 @@ const options = {
 async function copyStatic() {
   await cp(resolve(repo, 'extension/manifest.json'), resolve(outdir, 'manifest.json'))
   await cp(resolve(repo, 'extension/icons'), resolve(outdir, 'icons'), { recursive: true })
+  await cp(resolve(repo, 'extension/_locales'), resolve(outdir, '_locales'), { recursive: true })
   for (const file of ['popup.html', 'popup.css']) {
     await cp(resolve(repo, 'extension', file), resolve(outdir, file))
   }
