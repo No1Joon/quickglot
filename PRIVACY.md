@@ -10,5 +10,5 @@ The full policy is published at:
 
 Its source is [`app-info/policy/privacy-en.md`](app-info/policy/privacy-en.md)
 and [`app-info/policy/privacy.md`](app-info/policy/privacy.md); the published
-pages under `docs/` are generated from them by `npm run site`. Edit the source,
-never `docs/`.
+pages under `site/` are generated from them by `npm run site`. Edit the source,
+never `site/`.

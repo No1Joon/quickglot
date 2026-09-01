@@ -9,11 +9,11 @@ Safari 확장 — 텍스트를 선택하면 그 자리에서 번역한다. 번�
 
 서버가 없다. 번역은 전부 Apple Translation framework 로 기기 안에서 끝나고, 확장은 **네트워크 호출을 하나도 하지 않는다** — 백엔드·애널리틱스·크래시 리포터·서드파티 SDK 어느 것도 없다. 선택한 텍스트는 기기를 떠나지 않는다.
 
-- 저장하는 것은 대상 언어 설정 하나뿐(`browser.storage.local`).
+- 저장하는 것은 대상 언어 설정 하나뿐(App Group `UserDefaults`).
 - 입력 필드·contenteditable 안의 선택은 무시한다.
 - 진단 로그에는 글자 수와 언어쌍만 남고 텍스트는 안 남는다.
 - 패널은 closed shadow root 에 그려서 페이지 스크립트가 내용을 못 읽는다.
-- 권한은 `nativeMessaging`·`storage` 둘뿐이다. `host_permissions` 는 쓰지 않으므로 요청하지 않는다.
+- 권한은 `nativeMessaging` 하나뿐이다. `host_permissions` 는 쓰지 않으므로 요청하지 않는다.
 
 전문: [개인정보 처리방침](https://no1joon.github.io/quickglot/privacy/) · [Privacy Policy](https://no1joon.github.io/quickglot/privacy-en/) · [고객 지원](https://no1joon.github.io/quickglot/support/)
 
@@ -52,7 +52,7 @@ npm install
 npm run build          # dist/ 생성 — Xcode 빌드 전에 항상 먼저
 npm run dev            # watch
 npm run typecheck
-node scripts/gen-icons.mjs
+scripts/gen-icons.sh
 ```
 
 `dist/` 는 Xcode 프로젝트가 `../../../dist/` 로 참조하므로, 기존 파일 수정은 `npm run build` 후 Xcode 빌드만 하면 반영된다.

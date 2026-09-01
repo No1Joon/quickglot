@@ -441,10 +441,7 @@ struct OnboardingView: View {
     /// When this is false the button is a dead end, so the screen must say so
     /// rather than letting the user press it repeatedly.
     private func canRequestDownloads() -> Bool {
-        guard let session = try? TranslationSession(installedSource: source, target: target) else {
-            return false
-        }
-        return session.canRequestDownloads
+        TranslationSession(installedSource: source, target: target).canRequestDownloads
     }
 
     /// Per-language readiness. `status(from:to:)` with a nil target answers for
