@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+#
+# Runs the repository hygiene checks before anything reaches GitHub.
+#
+# CI runs the same checks, but only after a push has already published the
+# commit — a pull request branch is public the moment it lands, and
+# refs/pull/<n>/head keeps it even if the pull request is never merged. This is
+# the last point at which a Team ID, a home path, or an ignored file can still
+# be stopped rather than scrubbed afterwards.
+#
+# Wired up by `npm install` (see the prepare script). To bypass in an
+# emergency: git push --no-verify
+set -euo pipefail
+
+repo=$(git rev-parse --show-toplevel)
+node "$repo/scripts/check-sources.mjs" || {
+  echo ""
+  echo "pre-push: repository hygiene check failed — nothing was pushed."
+  echo "Fix the paths above, or push with --no-verify if you are certain."
+  exit 1
+}
