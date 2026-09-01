@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
     "site": "node scripts/gen-site.mjs",
     "test": "node scripts/check-sources.mjs && node --test --experimental-strip-types \"extension/src/**/*.test.ts\"",
-    "check:sources": "node scripts/check-sources.mjs"
+    "check:sources": "node scripts/check-sources.mjs",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
