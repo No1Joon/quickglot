@@ -10,6 +10,8 @@
  *    in the QUICKGLOT_TEAM_ID environment variable instead.
  * 3. A tracked file that .gitignore excludes. The ignore rule does nothing once
  *    the file is in the index, so the exclusion silently stops holding.
+ * 4. An absolute home-directory path. It publishes the author's username and
+ *    breaks on every other machine.
  *
  * All three have happened here, which is why they are checked rather than
  * documented.
@@ -76,6 +78,20 @@ for (const file of ignoredButTracked) {
   problems.push(`${file} is ignored by .gitignore but tracked`)
 }
 
+// An absolute path into someone's home directory. It names the machine's user,
+// and the script only runs on the machine it was written on. Paths belong
+// relative to the repository, or in an environment variable.
+const HOME_PATH = /(?:\/Users|\/home)\/[A-Za-z0-9._-]+\//
+for (const file of files) {
+  const text = readFileSync(file, 'utf8')
+  for (const [index, line] of text.split('\n').entries()) {
+    const match = HOME_PATH.exec(line)
+    if (match) {
+      problems.push(`${file}:${index + 1} hard-codes a home directory (${match[0]})`)
+    }
+  }
+}
+
 // App Store Connect rejects an iOS app icon that carries an alpha channel, and
 // nothing in the build says so — the upload just fails at submission time.
 const iosIcon =
@@ -99,12 +115,13 @@ if (problems.length > 0) {
   console.error(
     '\nA NUL byte should become an escape sequence (\\u0000) if it is intentional.' +
       '\nA Team ID should be removed; pass it as QUICKGLOT_TEAM_ID at build time.' +
-      '\nAn ignored-but-tracked path needs git rm --cached.',
+      '\nAn ignored-but-tracked path needs git rm --cached.' +
+      '\nA home path should become a repository-relative path or an env var.',
   )
   process.exit(1)
 }
 
 console.log(
   `checked ${files.length} text files of ${tracked.length} tracked: ` +
-    'no NUL bytes, no Team ID anywhere, nothing ignored-but-tracked, iOS icon opaque',
+    'no NUL bytes, no Team ID, no home paths, nothing ignored-but-tracked, icon opaque',
 )
