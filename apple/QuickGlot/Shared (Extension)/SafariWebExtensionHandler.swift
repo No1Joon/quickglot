@@ -8,7 +8,7 @@ import SafariServices
 import Translation
 import os.log
 
-private let log = Logger(subsystem: "com.no1joon.quickglot", category: "extension")
+private let log = Logger(subsystem: "com.quickglot.app", category: "extension")
 
 // MARK: - Wire protocol
 //
