@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>AppGroupIdentifier</key>
-	<string>$(TeamIdentifierPrefix)group.com.no1joon.quickglot</string>
+	<string>$(TeamIdentifierPrefix)group.com.quickglot.app</string>
 	<key>NSExtension</key>
 	<dict>
 		<key>NSExtensionPointIdentifier</key>

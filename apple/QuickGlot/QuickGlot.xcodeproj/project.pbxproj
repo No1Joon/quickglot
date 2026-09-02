@@ -672,7 +672,7 @@
 					SafariServices,
 				);
 				CODE_SIGN_ENTITLEMENTS = "iOS (Extension)/QuickGlotExtension-iOS.entitlements";
-				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickglot.app.Extension;
 				PRODUCT_NAME = "QuickGlot Extension";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -706,7 +706,7 @@
 					SafariServices,
 				);
 				CODE_SIGN_ENTITLEMENTS = "iOS (Extension)/QuickGlotExtension-iOS.entitlements";
-				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickglot.app.Extension;
 				PRODUCT_NAME = "QuickGlot Extension";
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
@@ -748,7 +748,7 @@
 					WebKit,
 				);
 				CODE_SIGN_ENTITLEMENTS = "iOS (App)/QuickGlot-iOS.entitlements";
-				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickglot.app;
 				PRODUCT_NAME = QuickGlot;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -789,7 +789,7 @@
 					WebKit,
 				);
 				CODE_SIGN_ENTITLEMENTS = "iOS (App)/QuickGlot-iOS.entitlements";
-				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickglot.app;
 				PRODUCT_NAME = QuickGlot;
 				SDKROOT = iphoneos;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -827,7 +827,7 @@
 					SafariServices,
 				);
 				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/QuickGlotExtension-macOS.entitlements";
-				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickglot.app.Extension;
 				PRODUCT_NAME = "QuickGlot Extension";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -863,7 +863,7 @@
 					SafariServices,
 				);
 				CODE_SIGN_ENTITLEMENTS = "macOS (Extension)/QuickGlotExtension-macOS.entitlements";
-				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot.Extension;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickglot.app.Extension;
 				PRODUCT_NAME = "QuickGlot Extension";
 				SDKROOT = macosx;
 				SKIP_INSTALL = YES;
@@ -904,7 +904,7 @@
 					WebKit,
 				);
 				CODE_SIGN_ENTITLEMENTS = "macOS (App)/QuickGlot-macOS.entitlements";
-				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickglot.app;
 				PRODUCT_NAME = QuickGlot;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;
@@ -946,7 +946,7 @@
 					WebKit,
 				);
 				CODE_SIGN_ENTITLEMENTS = "macOS (App)/QuickGlot-macOS.entitlements";
-				PRODUCT_BUNDLE_IDENTIFIER = com.no1joon.quickglot;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickglot.app;
 				PRODUCT_NAME = QuickGlot;
 				REGISTER_APP_GROUPS = YES;
 				SDKROOT = macosx;

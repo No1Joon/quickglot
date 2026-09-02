@@ -6,7 +6,7 @@
 	<true/>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>$(TeamIdentifierPrefix)group.com.no1joon.quickglot</string>
+		<string>$(TeamIdentifierPrefix)group.com.quickglot.app</string>
 	</array>
 </dict>
 </plist>

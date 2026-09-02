@@ -22,7 +22,7 @@ typealias PlatformViewController = NSViewController
 typealias PlatformHostingController = NSHostingController
 #endif
 
-let extensionBundleIdentifier = "com.no1joon.quickglot.Extension"
+let extensionBundleIdentifier = "com.quickglot.app.Extension"
 
 class ViewController: PlatformViewController {
 

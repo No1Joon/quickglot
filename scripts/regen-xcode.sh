@@ -12,7 +12,7 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_NAME="QuickGlot"
-BUNDLE_ID="com.no1joon.quickglot"
+BUNDLE_ID="com.quickglot.app"
 # Not committed: the Apple Team ID is a personal identifier, so it is supplied
 # per-machine. Leave it unset to have Xcode resolve the team itself.
 TEAM_ID="${QUICKGLOT_TEAM_ID:-}"
@@ -125,10 +125,10 @@ with open(path, 'w') as f:
 print('CODE_SIGN_ENTITLEMENTS restored')
 PYX
 
-for entry in "macOS (App):\$(TeamIdentifierPrefix)group.com.no1joon.quickglot" \
-             "macOS (Extension):\$(TeamIdentifierPrefix)group.com.no1joon.quickglot" \
-             "iOS (App):group.com.no1joon.quickglot" \
-             "iOS (Extension):group.com.no1joon.quickglot"; do
+for entry in "macOS (App):\$(TeamIdentifierPrefix)group.com.quickglot.app" \
+             "macOS (Extension):\$(TeamIdentifierPrefix)group.com.quickglot.app" \
+             "iOS (App):group.com.quickglot.app" \
+             "iOS (Extension):group.com.quickglot.app"; do
   dir="${entry%%:*}"; value="${entry#*:}"
   plist="apple/$APP_NAME/$dir/Info.plist"
   /usr/libexec/PlistBuddy -c "Add :AppGroupIdentifier string $value" "$plist" 2>/dev/null \
