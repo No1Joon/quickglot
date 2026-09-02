@@ -18,6 +18,12 @@ BUNDLE_ID="com.no1joon.quickglot"
 TEAM_ID="${QUICKGLOT_TEAM_ID:-}"
 IOS_TARGET="26.0"
 MACOS_TARGET="26.0"
+# iPhone only. The App Store requires a 13-inch iPad screenshot from any app that
+# declares iPad support, and one cannot be produced without the hardware: the
+# simulator ships no on-device translation models, so every screen it renders is
+# the unsupported-pair error. An iPhone-only build still registers its Safari
+# extension on iPad, so the extension keeps working there.
+DEVICE_FAMILY="1"
 
 SOURCES=(
   "$APP_NAME/Shared (App)/ViewController.swift"
@@ -138,6 +144,7 @@ done
 sed -i '' \
   -e "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $IOS_TARGET;/g" \
   -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9.]*;/MACOSX_DEPLOYMENT_TARGET = $MACOS_TARGET;/g" \
+  -e "s/TARGETED_DEVICE_FAMILY = \"[0-9,]*\";/TARGETED_DEVICE_FAMILY = \"$DEVICE_FAMILY\";/g" \
   "$PBX"
 
 if [ -n "$TEAM_ID" ]; then
