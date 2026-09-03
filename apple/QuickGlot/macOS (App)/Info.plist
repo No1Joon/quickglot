@@ -6,6 +6,8 @@
 	<string>$(TeamIdentifierPrefix)group.com.quickglot.app</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSApplicationCategoryType</key>
+	<string>public.app-category.utilities</string>
 	<key>SFSafariWebExtensionConverterVersion</key>
 	<string>26.6</string>
 </dict>
