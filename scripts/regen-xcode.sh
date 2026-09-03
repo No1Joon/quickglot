@@ -141,6 +141,12 @@ for plist in "apple/$APP_NAME/iOS (App)/Info.plist" "apple/$APP_NAME/macOS (App)
   /usr/libexec/PlistBuddy -c "Add :ITSAppUsesNonExemptEncryption bool false" "$plist" 2>/dev/null \
     || /usr/libexec/PlistBuddy -c "Set :ITSAppUsesNonExemptEncryption false" "$plist"
 done
+# The Mac App Store rejects a build with no category, and the converter sets
+# none. iOS takes its category from App Store Connect alone, so only the macOS
+# app needs the key; it matches the category the listing declares.
+/usr/libexec/PlistBuddy -c "Add :LSApplicationCategoryType string public.app-category.utilities" "apple/$APP_NAME/macOS (App)/Info.plist" 2>/dev/null \
+  || /usr/libexec/PlistBuddy -c "Set :LSApplicationCategoryType public.app-category.utilities" "apple/$APP_NAME/macOS (App)/Info.plist"
+
 sed -i '' \
   -e "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $IOS_TARGET;/g" \
   -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9.]*;/MACOSX_DEPLOYMENT_TARGET = $MACOS_TARGET;/g" \
