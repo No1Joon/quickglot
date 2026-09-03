@@ -16,6 +16,9 @@ app-info/release/
 design/screenshots/captures/
 design/screenshots/out/
 
+# 세션 재개 노트 — 일회용이고, 커밋되면 세션 상태가 public 으로 발행된다.
+temp-memory.md
+
 # 설계·작업 문서 — git 에서 제외하되 디스크에는 유지.
 # 에이전트는 파일시스템에서 직접 읽는다(Read 는 .gitignore 무관).
 docs/
