@@ -73,6 +73,26 @@ xcodebuild ... DEVELOPMENT_TEAM=$QUICKGLOT_TEAM_ID build
 
 ⚠️ Xcode GUI 의 Signing & Capabilities 에서 팀을 고르면 `project.pbxproj` 에 팀 ID 가 다시 기록된다. 커밋 전에 `git diff` 로 확인할 것.
 
+## 릴리스
+
+`scripts/release.sh` 가 아카이브 → 검증 → App Store Connect 업로드를 한 번에 한다. Organizer 를 거치지 않으므로 목록에서 아카이브를 고를 일이 없다.
+
+```sh
+export QUICKGLOT_TEAM_ID=XXXXXXXXXX
+export QUICKGLOT_ASC_KEY_PATH=~/path/AuthKey_XXXXXXXXXX.p8   # App Store Connect API 키
+export QUICKGLOT_ASC_KEY_ID=XXXXXXXXXX
+export QUICKGLOT_ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+scripts/release.sh              # macOS + iOS
+scripts/release.sh ios          # 한 플랫폼만
+scripts/release.sh --no-upload  # 업로드 대신 build/release/ 로 export — 배포 서명 확인용, 키 불필요
+```
+
+- 버전은 `extension/manifest.json` 에서 읽고, 프로젝트의 `MARKETING_VERSION` 과 다르면 멈춘다(`regen-xcode.sh` 를 돌린다).
+- 빌드 번호는 실행 시각(UTC, 분 단위)이다. 프로젝트의 `CURRENT_PROJECT_VERSION` 은 손대지 않는다.
+- 워킹트리가 더러우면 멈춘다 — 올라간 바이너리를 커밋으로 되짚을 수 있어야 한다.
+- 업로드 전에 아카이브의 플랫폼·버전·빌드 번호·번들 ID·수출 규정 플래그·(macOS) 카테고리를 읽어 대조한다.
+- 키·팀 ID 는 환경변수로만 받는다. `npm test` 의 위생검사가 tracked 파일에 들어오는 것을 막는다.
+
 ## macOS에서 처음 실행하기
 
 1. `npm run build` 후 Xcode에서 `QuickGlot (macOS)` 실행
