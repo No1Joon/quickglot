@@ -54,8 +54,9 @@ class ViewController: PlatformViewController {
         host.didMove(toParent: self)
 #elseif os(macOS)
         // The template window is sized for a small web view; the onboarding
-        // needs room for two pickers and the status row without scrolling.
-        preferredContentSize = NSSize(width: 520, height: 560)
+        // needs room for the icon, the language card and the button without
+        // scrolling.
+        preferredContentSize = NSSize(width: 520, height: 640)
 #endif
     }
 }
@@ -174,16 +175,21 @@ struct OnboardingView: View {
     @State private var prepareError: String?
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                header
-                enableSection
-                packSection
+        // The column is centred while it fits and scrolls once it does not —
+        // a fixed centre would push the button off a short window.
+        GeometryReader { proxy in
+            ScrollView {
+                VStack(spacing: 36) {
+                    hero
+                    languageSection
+                    enableSection
+                }
+                .padding(.horizontal, 32)
+                .padding(.vertical, 40)
+                .frame(maxWidth: 420)
+                .frame(maxWidth: .infinity, minHeight: proxy.size.height)
             }
-            .padding(24)
-            .frame(maxWidth: 520, alignment: .leading)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task { await loadLanguages() }
         .translationTask(configuration) { session in
             // Surfaces the system sheet. A normal return says only that the sheet
@@ -203,65 +209,77 @@ struct OnboardingView: View {
         .onDisappear { poll?.cancel() }
     }
 
-    private var header: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("QuickGlot").font(.largeTitle.bold())
-            Text(L.t("Select text in Safari and it is translated on device.", "Safari 에서 텍스트를 선택하면 기기 안에서 번역합니다."))
-                .foregroundStyle(.secondary)
+    /// The headline is the store subtitle, so the app, the listing and the
+    /// screenshots say the same thing.
+    private var hero: some View {
+        VStack(spacing: 24) {
+            appIcon
+            Text(L.t("Safari\nDrag to translate", "Safari\n드래그하면 바로 번역"))
+                .font(.title.bold())
+                .multilineTextAlignment(.center)
         }
     }
 
+    /// `Resources/Icon.png` is the same artwork as the app icon, rendered by
+    /// `scripts/gen-icons.sh`; the asset catalogue's icon set is not reliably
+    /// loadable by name on every platform, and this file already ships in both.
     @ViewBuilder
-    private var enableSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L.t("1. Turn on the extension", "1. 확장 프로그램 켜기")).font(.headline)
-#if os(macOS)
-            Button(L.t("Open Safari Extension Settings", "Safari 확장 프로그램 설정 열기")) {
-                SFSafariApplication.showPreferencesForExtension(
-                    withIdentifier: extensionBundleIdentifier
-                ) { _ in }
+    private var appIcon: some View {
+        if let url = Bundle.main.url(forResource: "Icon", withExtension: "png") {
+#if os(iOS)
+            if let image = UIImage(contentsOfFile: url.path) {
+                Image(uiImage: image).resizable().frame(width: 96, height: 96)
             }
 #else
-            Text(L.t("Settings › Apps › Safari › Extensions › QuickGlot, then allow it on the sites you want.", "설정 › 앱 › Safari › 확장 프로그램 › QuickGlot 을 켠 뒤, 사용할 사이트에 권한을 허용하세요."))
-                .foregroundStyle(.secondary)
-#endif
-            if let extensionTarget, let language = languages.first(where: { code($0) == extensionTarget }) {
-                Label(
-                    L.t("The extension translates into \(name(language))", "확장은 \(name(language)) 로 번역합니다"),
-                    systemImage: "checkmark.circle"
-                )
-                .font(.callout)
-                .foregroundStyle(.secondary)
-            } else {
-                Text(L.t("The extension picks a language automatically. Choose a fixed one from its toolbar button if you prefer.", "확장은 번역할 언어를 자동으로 고릅니다. 고정하려면 툴바 버튼에서 선택하세요."))
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+            if let image = NSImage(contentsOf: url) {
+                Image(nsImage: image).resizable().frame(width: 96, height: 96)
             }
+#endif
         }
     }
 
-    private var packSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(L.t("2. Download the languages you need", "2. 필요한 언어 받기")).font(.headline)
-            Text(L.t("Downloaded once, then translation works offline.", "한 번 받아두면 이후에는 오프라인에서 번역됩니다."))
-                .font(.callout)
-                .foregroundStyle(.secondary)
+    private var languageSection: some View {
+        VStack(spacing: 8) {
+            VStack(spacing: 0) {
+                if languages.isEmpty {
+                    ProgressView()
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                } else {
+                    languageRow("From", selection: $source, installed: sourceInstalled)
+                    Divider().padding(.leading, 16)
+                    languageRow("To", selection: $target, installed: targetInstalled)
+                    Divider().padding(.leading, 16)
+                    statusRow
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            }
+            .background(cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-            if languages.isEmpty {
-                ProgressView().padding(.vertical, 8)
-            } else {
-                languageRow("From", selection: $source, installed: sourceInstalled)
-                languageRow("To", selection: $target, installed: targetInstalled)
-                Divider()
-                statusRow
+            // The extension's pinned target, read from the shared app group.
+            // Showing it is the point of sharing: the "To" row above is what the
+            // app downloads, and this says what the extension will actually use.
+            if let extensionTarget, let language = languages.first(where: { code($0) == extensionTarget }) {
+                Text(L.t("The extension translates into \(name(language)).", "확장은 \(name(language))로 번역합니다."))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
             }
         }
         .onChange(of: source) { pairChanged() }
         .onChange(of: target) { pairChanged() }
     }
 
+    private var cardBackground: Color {
+#if os(iOS)
+        Color(.secondarySystemBackground)
+#else
+        Color(nsColor: .controlBackgroundColor)
+#endif
+    }
+
     /// Each language carries its own state, because a pair is often half ready
-    /// and L.t("Download", "받기") on the pair says nothing about which half is missing.
+    /// and a single "Download" on the pair says nothing about which half is missing.
     @ViewBuilder
     private func languageRow(
         _ label: String,
@@ -277,18 +295,60 @@ struct OnboardingView: View {
             }
             .labelsHidden()
             Spacer(minLength: 8)
+            // Icon only: the row is a picker, and a word next to it reads as a
+            // second control. The label survives for VoiceOver.
             switch installed {
             case .some(true):
-                Label(L.t("On device", "기기에 있음"), systemImage: "checkmark.circle.fill")
+                Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.green)
-                    .font(.caption)
+                    .imageScale(.large)
+                    .accessibilityLabel(L.t("On device", "기기에 있음"))
             case .some(false):
-                Label(L.t("Not downloaded", "받지 않음"), systemImage: "arrow.down.circle")
-                    .foregroundStyle(.secondary)
-                    .font(.caption)
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundStyle(.tertiary)
+                    .imageScale(.large)
+                    .accessibilityLabel(L.t("Not downloaded", "받지 않음"))
             case nil:
                 ProgressView().controlSize(.small)
             }
+        }
+        .padding(.horizontal, 16)
+        .frame(minHeight: 52)
+    }
+
+    @ViewBuilder
+    private var enableSection: some View {
+        VStack(spacing: 12) {
+#if os(macOS)
+            Button {
+                SFSafariApplication.showPreferencesForExtension(
+                    withIdentifier: extensionBundleIdentifier
+                ) { _ in }
+            } label: {
+                Text(L.t("Open Safari Extension Settings", "Safari 확장 프로그램 설정 열기"))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+#else
+            // iOS has no public URL for the Safari extensions page, so the button
+            // opens Settings and the path below does the rest. Pretending to deep
+            // link would land the user on the wrong screen with no explanation.
+            Button {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            } label: {
+                Text(L.t("Open Settings", "설정 열기"))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            Text(L.t("Settings › Apps › Safari › Extensions › QuickGlot", "설정 › 앱 › Safari › 확장 프로그램 › QuickGlot"))
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+#endif
         }
     }
 
@@ -299,8 +359,11 @@ struct OnboardingView: View {
             HStack { ProgressView().controlSize(.small); Text(L.t("Checking…", "확인 중…")).foregroundStyle(.secondary) }
 
         case .ready:
-            Label(L.t("Ready — this pair translates offline", "준비됨 — 이 언어쌍은 오프라인에서 번역됩니다"), systemImage: "checkmark.circle.fill")
-                .foregroundStyle(.green)
+            Label {
+                Text(L.t("Ready offline", "오프라인 준비됨")).foregroundStyle(.secondary)
+            } icon: {
+                Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+            }
 
         case .needsDownload:
             HStack {
