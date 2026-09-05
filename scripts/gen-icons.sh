@@ -2,10 +2,12 @@
 # Renders every icon slot from design/*.svg. The SVGs are the source of truth
 # and this script never writes to design/.
 #
-# Three families, each with different rules:
+# Four families, each with different rules:
 #   extension/icons/*        browser toolbar — rounded plate, alpha kept
 #   AppIcon mac-icon-*       macOS — rounded plate inset in a transparent canvas
 #   AppIcon universal-*      iOS — full-bleed square, NO alpha (see below)
+#   Shared (App)/Resources/Icon.png
+#                            the onboarding screen's icon — rounded plate, alpha kept
 #
 # The iOS slot must not carry an alpha channel: App Store Connect rejects the
 # upload if it does. `-alpha remove` composites against the background and
@@ -17,6 +19,7 @@ SQUARE="$REPO/design/icon-square.svg"
 TILE="$REPO/design/icon-tile.svg"
 EXT_ICONS="$REPO/extension/icons"
 APPICON="$REPO/apple/QuickGlot/Shared (App)/Assets.xcassets/AppIcon.appiconset"
+APP_ICON_PNG="$REPO/apple/QuickGlot/Shared (App)/Resources/Icon.png"
 
 command -v magick >/dev/null || { echo "ImageMagick required: brew install imagemagick" >&2; exit 1; }
 # ImageMagick's built-in SVG renderer ignores linearGradient and fills the shape
@@ -67,6 +70,12 @@ magick "$WORK/square.png" $MAGICK_STABLE -resize 1024x1024 \
   -background white -alpha remove -alpha off \
   "PNG24:$APPICON/universal-icon-1024@1x.png"
 echo "  universal-icon-1024@1x.png"
+
+echo "onboarding icon"
+# Shown at 96pt; 512px covers 3x with room to spare, and the asset catalogue is
+# not reliably loadable by name from SwiftUI on both platforms.
+magick "$WORK/tile.png" $MAGICK_STABLE -resize 512x512 "PNG32:$APP_ICON_PNG"
+echo "  Icon.png"
 
 echo
 echo "Verifying PNG colour types (iOS must be 2 = RGB, no alpha):"
