@@ -1,11 +1,9 @@
 #!/bin/bash
 # Archives the app for the App Store and uploads it, without Xcode's Organizer.
 #
-# The Organizer asks a person to pick an archive from a list. That list is what
-# uploaded an iOS archive in place of the macOS one: a CLI-built archive was not
-# shown, so the visible one was chosen. Here the archive that is uploaded is the
-# one this run just built, and its platform is checked before it leaves the
-# machine.
+# The Organizer has a person pick an archive from a list, and a CLI-built archive
+# is not always in that list. Here the archive that is uploaded is the one this
+# run just built, and its platform is checked before it leaves the machine.
 #
 #   scripts/release.sh [macos|ios|all] [--no-upload]
 #
@@ -35,7 +33,7 @@ for arg in "$@"; do
     macos|ios) PLATFORMS+=("$arg") ;;
     all) PLATFORMS=(macos ios) ;;
     --no-upload) UPLOAD=0 ;;
-    -h|--help) sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,/^[^#]/p' "$0" | sed '$d; s/^# \{0,1\}//'; exit 0 ;;
     *) echo "error: unknown argument '$arg'" >&2; exit 2 ;;
   esac
 done
@@ -150,8 +148,9 @@ for platform in "${PLATFORMS[@]}"; do
       DEVELOPMENT_TEAM="$TEAM_ID" CURRENT_PROJECT_VERSION="$BUILD" \
       -allowProvisioningUpdates ${AUTH[@]+"${AUTH[@]}"}
 
-  # The checks below are the ones that have actually bitten: the wrong platform
-  # uploaded, and a macOS build without a category that the store then refused.
+  # Nothing after this point can tell a wrong archive from a right one: the
+  # upload accepts any platform, and the Mac App Store refuses a build with no
+  # category only at review. So the product's own Info.plist is read back here.
   APP="$ARCHIVE/Products/$(plist "$ARCHIVE/Info.plist" ApplicationProperties:ApplicationPath)"
   if [ "$SDK" = macosx ]; then INFO="$APP/Contents/Info.plist"; else INFO="$APP/Info.plist"; fi
   echo "== $platform: verify"
