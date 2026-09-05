@@ -21,6 +21,17 @@ export function cacheKey({ text, target }: CacheKeyInput): string {
   return `${target ?? '*'}\u0000${text}`
 }
 
+/**
+ * Whether a selection is worth offering to translate. Trimmed already by the
+ * caller; this rejects what is left when the drag caught nothing that reads as
+ * language — a single character, or punctuation, digits and symbols alone.
+ * Counted in code points so an emoji or a CJK character is one, not two.
+ */
+export function isTranslatable(text: string): boolean {
+  if ([...text].length < 2) return false
+  return /\p{L}/u.test(text)
+}
+
 export interface Rect {
   top: number
   bottom: number

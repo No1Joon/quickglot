@@ -1,3 +1,4 @@
+import { isTranslatable } from '../shared/logic'
 import { MAX_SELECTION_LENGTH, type TranslateResponse } from '../shared/messages'
 import { dismiss, isOwnElement, show, type Anchor } from './ui'
 
@@ -54,7 +55,7 @@ function readSelection(): Selected | null {
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return null
 
   const text = selection.toString().trim()
-  if (!text) return null
+  if (!isTranslatable(text)) return null
   if (isEditable(selection.anchorNode)) return null
 
   const rect = selection.getRangeAt(0).getBoundingClientRect()
