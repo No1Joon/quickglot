@@ -110,22 +110,27 @@ test('end alignment still respects the viewport margin', () => {
   assert.ok(left >= MARGIN, `left ${left} should respect the margin`)
 })
 
-test('a single character is not offered for translation', () => {
+test('a single letter is not offered for translation, whatever surrounds it', () => {
   assert.equal(isTranslatable('a'), false)
   assert.equal(isTranslatable('山'), false)
-  assert.equal(isTranslatable('🙂'), false)
+  assert.equal(isTranslatable('a.'), false)
+  assert.equal(isTranslatable('v2'), false)
+  assert.equal(isTranslatable('(a)'), false)
 })
 
 test('a selection with no letters is not offered for translation', () => {
+  assert.equal(isTranslatable(''), false)
   assert.equal(isTranslatable('123'), false)
   assert.equal(isTranslatable('...'), false)
   assert.equal(isTranslatable('— !?'), false)
   assert.equal(isTranslatable('12:30'), false)
+  assert.equal(isTranslatable('🙂'), false)
 })
 
-test('two or more characters with a letter are offered', () => {
+test('two letters are enough, in any script and with anything around them', () => {
   assert.equal(isTranslatable('hi'), true)
   assert.equal(isTranslatable('한국'), true)
-  assert.equal(isTranslatable('v2'), true)
-  assert.equal(isTranslatable('a.'), true)
+  assert.equal(isTranslatable('a b'), true)
+  assert.equal(isTranslatable('1st'), true)
+  assert.equal(isTranslatable('Hello, world!'), true)
 })

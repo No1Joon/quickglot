@@ -24,12 +24,12 @@ export function cacheKey({ text, target }: CacheKeyInput): string {
 /**
  * Whether a selection is worth offering to translate. Trimmed already by the
  * caller; this rejects what is left when the drag caught nothing that reads as
- * language — a single character, or punctuation, digits and symbols alone.
- * Counted in code points so an emoji or a CJK character is one, not two.
+ * language. Two letters is the bar: one letter with punctuation ("a.") or a
+ * number ("v2") is not a word, and digits, symbols and punctuation alone never
+ * are. Letters are counted across scripts, so "한국" passes like "hi".
  */
 export function isTranslatable(text: string): boolean {
-  if ([...text].length < 2) return false
-  return /\p{L}/u.test(text)
+  return (text.match(/\p{L}/gu)?.length ?? 0) >= 2
 }
 
 export interface Rect {
