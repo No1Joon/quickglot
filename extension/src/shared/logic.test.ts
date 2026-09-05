@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   cacheKey,
+  isTranslatable,
   placement,
   RTL_LANGUAGES,
   toPageCoordinates,
@@ -107,4 +108,29 @@ test('end alignment still respects the viewport margin', () => {
     prefer: 'above',
   })
   assert.ok(left >= MARGIN, `left ${left} should respect the margin`)
+})
+
+test('a single letter is not offered for translation, whatever surrounds it', () => {
+  assert.equal(isTranslatable('a'), false)
+  assert.equal(isTranslatable('山'), false)
+  assert.equal(isTranslatable('a.'), false)
+  assert.equal(isTranslatable('v2'), false)
+  assert.equal(isTranslatable('(a)'), false)
+})
+
+test('a selection with no letters is not offered for translation', () => {
+  assert.equal(isTranslatable(''), false)
+  assert.equal(isTranslatable('123'), false)
+  assert.equal(isTranslatable('...'), false)
+  assert.equal(isTranslatable('— !?'), false)
+  assert.equal(isTranslatable('12:30'), false)
+  assert.equal(isTranslatable('🙂'), false)
+})
+
+test('two letters are enough, in any script and with anything around them', () => {
+  assert.equal(isTranslatable('hi'), true)
+  assert.equal(isTranslatable('한국'), true)
+  assert.equal(isTranslatable('a b'), true)
+  assert.equal(isTranslatable('1st'), true)
+  assert.equal(isTranslatable('Hello, world!'), true)
 })
