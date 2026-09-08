@@ -49,25 +49,22 @@ async function translate(req: TranslateRequest): Promise<TranslateResponse> {
 }
 
 /**
- * The pinned target, cached for this worker's lifetime. It is only needed to key
- * the response cache — the native side reads the same shared setting and would
- * resolve the target anyway.
+ * The pinned target, read before every request. It is only needed to key the
+ * response cache — the native side reads the same shared setting and would
+ * resolve the target anyway. It cannot be cached for the worker's lifetime: the
+ * popup announces its changes, but the app writes the same setting from its
+ * "To" row and has no way to tell this worker, so a remembered value would key
+ * cache hits to a language the user has since moved away from.
  */
-let pinnedTarget: string | undefined
-let targetLoaded = false
-
 async function resolveTarget(): Promise<string | undefined> {
-  if (targetLoaded) return pinnedTarget
   try {
     const res = (await browser.runtime.sendNativeMessage(NATIVE_APP, {
-      type: 'settings',
+      type: 'target',
     })) as SettingsResponse | undefined
-    pinnedTarget = res && res.ok && res.target ? res.target : undefined
+    return res && res.ok && res.target ? res.target : undefined
   } catch {
-    pinnedTarget = undefined
+    return undefined
   }
-  targetLoaded = true
-  return pinnedTarget
 }
 
 browser.runtime.onMessage.addListener(
@@ -76,9 +73,8 @@ browser.runtime.onMessage.addListener(
     if (!req) return undefined
 
     if (req.type === 'targetChanged') {
-      pinnedTarget = req.target || undefined
-      targetLoaded = true
-      // Entries keyed to the old target would answer in the wrong language.
+      // Entries keyed to the old target are unreachable now; drop them rather
+      // than let them fill the cache.
       cache.clear()
       return undefined
     }

@@ -4,6 +4,11 @@ export interface SettingsRequest {
   type: 'settings'
 }
 
+/** The pinned target alone, without the language list `settings` enumerates. */
+export interface TargetRequest {
+  type: 'target'
+}
+
 export interface SetTargetRequest {
   type: 'setTarget'
   /** BCP-47 tag, or empty string for automatic. */
@@ -23,6 +28,7 @@ export interface Language {
   name: string
 }
 
+/** Answers `settings`, `target` and `setTarget`; only `settings` fills `languages`. */
 export type SettingsResponse =
   | { ok: true; target: string; languages: Language[] }
   | { ok: false; message: string }
