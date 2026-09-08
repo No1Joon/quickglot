@@ -84,9 +84,11 @@ private let didBecomeActive = NotificationCenter.default
     .publisher(for: UIApplication.didBecomeActiveNotification)
 #endif
 
-/// Reads the target language the extension is pinned to.
+/// The target language the extension translates into, shared through the app
+/// group. The popup pins or clears it; the "To" row here sets it as well, so a
+/// language picked for download is the one Safari uses next.
 ///
-/// The extension writes it through `SharedSettings` in
+/// The extension side is `SharedSettings` in
 /// `Shared (Extension)/SafariWebExtensionHandler.swift`. The two cannot share a
 /// file: they are separate build targets, and `scripts/regen-xcode.sh` rebuilds
 /// the project from scratch, so a file added to both would be dropped without a
@@ -95,14 +97,27 @@ private let didBecomeActive = NotificationCenter.default
 private enum ExtensionSettings {
     private static let targetKey = "targetLanguage"
 
-    static var target: String? {
+    private static var defaults: UserDefaults? {
         guard let group = Bundle.main.object(forInfoDictionaryKey: "AppGroupIdentifier") as? String,
-              !group.isEmpty,
-              let defaults = UserDefaults(suiteName: group),
-              let value = defaults.string(forKey: targetKey),
-              !value.isEmpty
+              !group.isEmpty
         else { return nil }
-        return value
+        return UserDefaults(suiteName: group)
+    }
+
+    /// nil means automatic — the extension picks from the system languages.
+    static var target: String? {
+        get {
+            guard let value = defaults?.string(forKey: targetKey), !value.isEmpty else { return nil }
+            return value
+        }
+        set {
+            guard let defaults else { return }
+            if let newValue, !newValue.isEmpty {
+                defaults.set(newValue, forKey: targetKey)
+            } else {
+                defaults.removeObject(forKey: targetKey)
+            }
+        }
     }
 }
 
@@ -167,8 +182,9 @@ struct OnboardingView: View {
     @State private var targetInstalled: Bool?
 
     /// The extension's pinned target, read from the shared app group. Showing it
-    /// here is the point of sharing: the app can now say which pack the
-    /// extension will actually need instead of guessing.
+    /// here is the point of sharing: the app can say which pack the extension
+    /// will actually need instead of guessing, and picking "To" writes it back
+    /// so the two never disagree.
     @State private var extensionTarget: String?
     @State private var configuration: TranslationSession.Configuration?
     @State private var poll: Task<Void, Never>?
@@ -203,7 +219,11 @@ struct OnboardingView: View {
             }
         }
         .onReceive(didBecomeActive) { _ in
-            extensionTarget = ExtensionSettings.target
+            // The popup may have re-pinned or cleared while the app was in the
+            // background; "To" follows it so the row and the footnote never name
+            // two languages. `languages` is empty until the first load, which
+            // does this itself.
+            if !languages.isEmpty { followExtensionTarget() }
             Task { await refreshStatus() }
         }
         .onDisappear { poll?.cancel() }
@@ -247,7 +267,7 @@ struct OnboardingView: View {
                 } else {
                     languageRow("From", selection: $source, installed: sourceInstalled)
                     Divider().padding(.leading, 16)
-                    languageRow("To", selection: $target, installed: targetInstalled)
+                    languageRow("To", selection: pinnedTarget, installed: targetInstalled)
                     Divider().padding(.leading, 16)
                     statusRow
                         .padding(.horizontal, 16)
@@ -257,17 +277,40 @@ struct OnboardingView: View {
             }
             .background(cardBackground, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
 
-            // The extension's pinned target, read from the shared app group.
-            // Showing it is the point of sharing: the "To" row above is what the
-            // app downloads, and this says what the extension will actually use.
-            if let extensionTarget, let language = languages.first(where: { code($0) == extensionTarget }) {
-                Text(L.t("The extension translates into \(name(language)).", "확장은 \(name(language))로 번역합니다."))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+            // What the extension will actually use. Pinned, it is the "To" row
+            // above; automatic, it is whichever system language differs from the
+            // text — and the row only becomes the answer once the user picks it.
+            if !languages.isEmpty {
+                Group {
+                    if let extensionTarget, let language = languages.first(where: { code($0) == extensionTarget }) {
+                        Text(L.t("The extension translates into \(name(language)).", "확장은 \(name(language))로 번역합니다."))
+                    } else {
+                        Text(L.t("The extension picks the language automatically. Choose To above to set it.",
+                                 "확장은 언어를 자동으로 고릅니다. 위에서 To 를 고르면 그 언어로 번역합니다."))
+                    }
+                }
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
             }
         }
         .onChange(of: source) { pairChanged() }
         .onChange(of: target) { pairChanged() }
+    }
+
+    /// The "To" row's binding. A pick here is also the extension's target, so it
+    /// is written through to the app group — but only from here. `target` is
+    /// assigned directly when the screen loads or the popup clears the pin, and
+    /// those must not turn a default into a pin.
+    private var pinnedTarget: Binding<Locale.Language> {
+        Binding(
+            get: { target },
+            set: { language in
+                target = language
+                ExtensionSettings.target = code(language)
+                extensionTarget = code(language)
+            }
+        )
     }
 
     private var cardBackground: Color {
@@ -558,17 +601,25 @@ struct OnboardingView: View {
 
         if let english = languages.first(where: { code($0) == "en" }) { source = english }
 
+        followExtensionTarget()
+        await refreshStatus()
+    }
+
+    /// Points "To" at what the extension will use. Pinned, that is the pinned
+    /// language; automatic, it is the same default the extension would pick —
+    /// set without pinning it, since the user may prefer it that way. Going back
+    /// to the default on a cleared pin also lets the same language be picked
+    /// again, which a picker already showing it would not report.
+    private func followExtensionTarget() {
         extensionTarget = ExtensionSettings.target
-        if let pinned = extensionTarget,
-           let match = languages.first(where: { code($0) == pinned }) {
-            target = match
+        let wanted: Locale.Language?
+        if let pinned = extensionTarget {
+            wanted = languages.first(where: { code($0) == pinned })
         } else {
             let preferred = Locale.preferredLanguages.map(Locale.Language.init(identifier:))
-            if let first = preferred.first(where: { code($0) != code(source) }),
-               let match = languages.first(where: { code($0) == code(first) }) {
-                target = match
-            }
+            wanted = preferred.first(where: { code($0) != code(source) })
+                .flatMap { first in languages.first(where: { code($0) == code(first) }) }
         }
-        await refreshStatus()
+        if let wanted, code(wanted) != code(target) { target = wanted }
     }
 }

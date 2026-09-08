@@ -56,7 +56,8 @@ private enum Payload {
 // MARK: - Shared settings
 
 /// The target language lives in the app group so the app and the extension read
-/// one value instead of each keeping its own. The group identifier is mirrored
+/// one value instead of each keeping its own. Both write it: the popup pins or
+/// clears it, and the app's "To" row pins it. The group identifier is mirrored
 /// into Info.plist by the build, where the team prefix is expanded — hardcoding
 /// it here would put the team id in a public repository.
 enum SharedSettings {
@@ -234,6 +235,13 @@ class SafariWebExtensionHandler: NSObject, NSExtensionRequestHandling {
                 log.debug("result: \(payload.summary, privacy: .public)")
                 Self.complete(context, with: payload)
             }
+
+        case "target":
+            // The background asks before every translation, so this answers
+            // from the defaults alone — `settings` also enumerates languages.
+            Self.complete(context, with: .settings(
+                target: SharedSettings.target, languages: []
+            ))
 
         case "setTarget":
             SharedSettings.target = body["target"] as? String
