@@ -219,13 +219,11 @@ struct OnboardingView: View {
             }
         }
         .onReceive(didBecomeActive) { _ in
-            // The popup may have re-pinned while the app was in the background;
-            // "To" follows it so the row and the footnote never name two languages.
-            extensionTarget = ExtensionSettings.target
-            if let pinned = extensionTarget, pinned != code(target),
-               let match = languages.first(where: { code($0) == pinned }) {
-                target = match
-            }
+            // The popup may have re-pinned or cleared while the app was in the
+            // background; "To" follows it so the row and the footnote never name
+            // two languages. `languages` is empty until the first load, which
+            // does this itself.
+            if !languages.isEmpty { followExtensionTarget() }
             Task { await refreshStatus() }
         }
         .onDisappear { poll?.cancel() }
@@ -603,19 +601,25 @@ struct OnboardingView: View {
 
         if let english = languages.first(where: { code($0) == "en" }) { source = english }
 
-        // Automatic in the popup leaves "To" on the same default the extension
-        // would pick, without pinning it: the user may prefer it that way.
+        followExtensionTarget()
+        await refreshStatus()
+    }
+
+    /// Points "To" at what the extension will use. Pinned, that is the pinned
+    /// language; automatic, it is the same default the extension would pick —
+    /// set without pinning it, since the user may prefer it that way. Going back
+    /// to the default on a cleared pin also lets the same language be picked
+    /// again, which a picker already showing it would not report.
+    private func followExtensionTarget() {
         extensionTarget = ExtensionSettings.target
-        if let pinned = extensionTarget,
-           let match = languages.first(where: { code($0) == pinned }) {
-            target = match
+        let wanted: Locale.Language?
+        if let pinned = extensionTarget {
+            wanted = languages.first(where: { code($0) == pinned })
         } else {
             let preferred = Locale.preferredLanguages.map(Locale.Language.init(identifier:))
-            if let first = preferred.first(where: { code($0) != code(source) }),
-               let match = languages.first(where: { code($0) == code(first) }) {
-                target = match
-            }
+            wanted = preferred.first(where: { code($0) != code(source) })
+                .flatMap { first in languages.first(where: { code($0) == code(first) }) }
         }
-        await refreshStatus()
+        if let wanted, code(wanted) != code(target) { target = wanted }
     }
 }
