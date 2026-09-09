@@ -24,6 +24,9 @@ MACOS_TARGET="26.0"
 # the unsupported-pair error. An iPhone-only build still registers its Safari
 # extension on iPad, so the extension keeps working there.
 DEVICE_FAMILY="1"
+# The converter stamps MARKETING_VERSION = 1.0 regardless of the manifest, so the
+# product version has to be re-applied here like every other setting we own.
+VERSION="$(node -p "require('$REPO/extension/manifest.json').version")"
 
 SOURCES=(
   "$APP_NAME/Shared (App)/ViewController.swift"
@@ -148,6 +151,7 @@ done
   || /usr/libexec/PlistBuddy -c "Set :LSApplicationCategoryType public.app-category.utilities" "apple/$APP_NAME/macOS (App)/Info.plist"
 
 sed -i '' \
+  -e "s/MARKETING_VERSION = [0-9.]*;/MARKETING_VERSION = $VERSION;/g" \
   -e "s/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*;/IPHONEOS_DEPLOYMENT_TARGET = $IOS_TARGET;/g" \
   -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9.]*;/MACOSX_DEPLOYMENT_TARGET = $MACOS_TARGET;/g" \
   -e "s/TARGETED_DEVICE_FAMILY = \"[0-9,]*\";/TARGETED_DEVICE_FAMILY = \"$DEVICE_FAMILY\";/g" \
