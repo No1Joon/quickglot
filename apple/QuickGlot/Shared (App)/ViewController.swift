@@ -292,6 +292,11 @@ struct OnboardingView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                // Inside the ScrollView the text is offered more width than the
+                // card has, so it lays out on one line and is then clipped to
+                // it — the sentence loses its end. Taking the ideal height for
+                // the width actually available makes it wrap instead.
+                .fixedSize(horizontal: false, vertical: true)
             }
         }
         .onChange(of: source) { pairChanged() }
@@ -391,6 +396,7 @@ struct OnboardingView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
 #endif
         }
     }
