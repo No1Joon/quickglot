@@ -18,19 +18,26 @@
  */
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
-import { extname } from 'node:path'
+import { basename, extname } from 'node:path'
 
 const TEXT_EXTENSIONS = new Set([
   '.ts', '.mjs', '.js', '.json', '.md', '.html', '.css', '.yml', '.yaml',
   '.swift', '.sh', '.svg', '.entitlements', '.plist', '.pbxproj',
 ])
 
+// An env file carries exactly the values this repository keeps out of itself,
+// and it is the one text file the extension list cannot reach: extname('.env')
+// is the empty string, so a name-based rule is what covers it. .gitignore
+// excludes these, and check 3 keeps that exclusion honest — this is the second
+// lock, for the day the ignore rule is edited away.
+const isEnvFile = (f) => /^\.env(\..+)?$/.test(basename(f))
+
 const tracked = execFileSync('git', ['ls-files', '-z'], { encoding: 'buffer' })
   .toString('utf8')
   .split('\0')
   .filter(Boolean)
 
-const files = tracked.filter((f) => TEXT_EXTENSIONS.has(extname(f)))
+const files = tracked.filter((f) => TEXT_EXTENSIONS.has(extname(f)) || isEnvFile(f))
 
 const problems = []
 for (const file of files) {

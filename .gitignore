@@ -43,3 +43,7 @@ xcuserdata/
 
 # macOS
 .DS_Store
+
+# 서명·업로드 값. release.sh 는 환경변수로 읽는다 — 리포에 들어오면 안 된다.
+.env
+.env.*
