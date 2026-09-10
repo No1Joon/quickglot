@@ -5,6 +5,8 @@ const NATIVE_APP = 'application.id'
 const select = document.getElementById('target') as HTMLSelectElement
 const hint = document.getElementById('hint') as HTMLParagraphElement
 const label = document.getElementById('label') as HTMLLabelElement
+const onDevice = document.getElementById('on-device') as HTMLParagraphElement
+const packs = document.getElementById('packs') as HTMLParagraphElement
 
 const t = (key: string, ...args: string[]) => browser.i18n.getMessage(key, args)
 
@@ -21,6 +23,10 @@ label.textContent = t('popupTranslateInto')
 const automaticOption = select.options[0]
 if (automaticOption) automaticOption.textContent = t('popupAutomatic')
 hint.textContent = AUTO_HINT
+// The sheet's standing context — true whatever the setting is, so it is written
+// once here and never touched again.
+onDevice.textContent = t('popupOnDevice')
+packs.textContent = t('popupLanguagePacks')
 
 async function load(): Promise<void> {
   // The setting lives in the app group, shared with the QuickGlot app, so it is
