@@ -7,13 +7,21 @@
   </head>
   <body>
     <div class="wrap">
-      <label class="label" for="target" id="label"></label>
+      <label class="title" for="target" id="label"></label>
       <div class="field">
         <select id="target" disabled>
           <option value=""></option>
         </select>
+        <svg class="chevron" viewBox="0 0 12 8" aria-hidden="true" focusable="false">
+          <path d="M1.5 1.5 6 6l4.5-4.5" />
+        </svg>
       </div>
       <p id="hint" class="hint"></p>
+      <div class="spacer"></div>
+      <footer class="context">
+        <p class="note" id="on-device"></p>
+        <p class="note" id="packs"></p>
+      </footer>
     </div>
     <script src="popup.js"></script>
   </body>

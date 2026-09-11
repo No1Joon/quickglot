@@ -5,6 +5,8 @@
 body {
   margin: 0;
   font: 15px/1.45 -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: Canvas;
+  color: CanvasText;
 }
 
 /*
@@ -16,27 +18,69 @@ body {
   min-width: 280px;
   max-width: 100%;
   padding: 16px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 8px;
+.title { font-weight: 600; }
+
+/*
+ * The select keeps its native behaviour — the iOS wheel, the macOS menu — and
+ * only loses its chrome, so the row around it can draw a settings card in the
+ * app's own vocabulary instead. Colours come from the system so the dark
+ * appearance needs no second palette.
+ */
+.field {
+  position: relative;
+  border-radius: 10px;
+  background: color-mix(in srgb, CanvasText 6%, Canvas);
 }
 
-.field { position: relative; }
-
+/*
+ * The select is the card rather than a control sitting inside one: it carries
+ * the row's height and padding, so every pixel of the card opens it. Sized as
+ * a box it does not fill, the chevron and the space around it would be dead
+ * area on a row built to be a touch target.
+ */
 select {
+  display: block;
   width: 100%;
-  font: inherit;
   /* Comfortable as a touch target, not just as a pointer target. */
   min-height: 44px;
-  padding: 0 12px;
-  border-radius: 10px;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  border: none;
+  border-radius: inherit;
+  margin: 0;
+  /* Right: the chevron's offset, its width, and a gap the text keeps from it. */
+  padding: 0 31px 0 12px;
+}
+
+select:disabled { opacity: 0.4; }
+
+/* Painted over the select, so a tap on it still reaches the control. */
+.chevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  width: 11px;
+  height: 7px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
 }
 
 .hint {
-  margin: 12px 0 0;
+  margin: 0;
   font-size: 13px;
   line-height: 1.5;
   opacity: 0.65;
@@ -49,4 +93,64 @@ select {
 
 @media (prefers-color-scheme: dark) {
   .hint.error { color: #ff6b60; }
+}
+
+/*
+ * The sheet is the only place with height to answer, so the fill and the
+ * context that earns it live behind the touch query. On macOS the panel is
+ * sized by its content: switching them on there would not fill anything, it
+ * would only make the panel taller.
+ */
+.spacer,
+.context { display: none; }
+
+@media (pointer: coarse) {
+  .wrap {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 20px 16px 28px;
+  }
+
+  .title {
+    font-size: 22px;
+    line-height: 1.27;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    margin-bottom: 4px;
+  }
+
+  .field { border-radius: 12px; }
+
+  select {
+    min-height: 52px;
+    padding: 0 36px 0 16px;
+    font-size: 17px;
+  }
+
+  .chevron {
+    right: 16px;
+    width: 12px;
+    height: 8px;
+  }
+
+  .spacer {
+    display: block;
+    flex-grow: 1;
+    min-height: 24px;
+  }
+
+  .context {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding-top: 14px;
+    border-top: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
+  }
+
+  .note {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.4;
+    opacity: 0.6;
+  }
 }
