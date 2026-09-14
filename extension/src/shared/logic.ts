@@ -53,17 +53,54 @@ export const GAP = 8
 export const MARGIN = 12
 
 /**
- * The iOS callout (Copy / Look Up / Translate) takes the space below the
- * selection, and a page cannot ask where it is. So our own UI goes above the
- * selection, and the chip is additionally aligned to the end of the selection
- * rather than its centre, which keeps the two apart on both axes.
+ * Room the iOS callout (Copy / Look Up / Translate) needs above a selection:
+ * the menu bar plus its arrow. A page cannot ask where the system put it, so
+ * this is the estimate everything below works from.
  */
+export const CALLOUT_HEIGHT = 60
+
+/** Extra distance kept from the selection on touch, where the callout also lives. */
 export const CALLOUT_GAP = 20
 
 /**
- * Where the panel goes, in viewport coordinates. Below the selection by default
- * because on iOS the system callout claims the space above it; flipped above
- * only when there is no room below.
+ * Which side of the selection the iOS callout is on. The system draws it above
+ * the selection when it fits there and below otherwise, and re-decides each
+ * time the selection moves in the viewport, so the answer changes with scroll.
+ */
+export function calloutSide(anchorTop: number): 'above' | 'below' {
+  return anchorTop >= CALLOUT_HEIGHT ? 'above' : 'below'
+}
+
+/** The side our own UI takes: whichever the callout does not. */
+export function sideAwayFromCallout(anchorTop: number): 'above' | 'below' {
+  return calloutSide(anchorTop) === 'above' ? 'below' : 'above'
+}
+
+/**
+ * Where the anchor is in the viewport now, given where it was measured and how
+ * far the page has scrolled since. Lets the chip follow the callout's
+ * re-placement after a scroll without re-reading the selection.
+ */
+export function anchorNow<T extends Rect & { scrollX: number; scrollY: number }>(
+  anchor: T,
+  scroll: { scrollX: number; scrollY: number },
+): T {
+  const dx = scroll.scrollX - anchor.scrollX
+  const dy = scroll.scrollY - anchor.scrollY
+  return {
+    ...anchor,
+    top: anchor.top - dy,
+    bottom: anchor.bottom - dy,
+    left: anchor.left - dx,
+    right: anchor.right - dx,
+    scrollX: scroll.scrollX,
+    scrollY: scroll.scrollY,
+  }
+}
+
+/**
+ * Where the panel goes, in viewport coordinates. Below the selection unless
+ * asked otherwise; flipped to the other side only when there is no room.
  */
 export function placement(
   anchor: Rect,
