@@ -67,7 +67,21 @@ const STYLE = `
 }
 `
 
-import { CALLOUT_GAP, placement, RTL_LANGUAGES, toPageCoordinates } from '../shared/logic'
+import {
+  anchorNow,
+  CALLOUT_GAP,
+  intersectsViewport,
+  placement,
+  RTL_LANGUAGES,
+  sideAwayFromCallout,
+  toPageCoordinates,
+} from '../shared/logic'
+
+/** Touch means the iOS callout shares the selection with us; see `position`. */
+const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches
+
+/** How long after the last scroll event the chip is re-placed. */
+const SCROLL_SETTLE_MS = 120
 
 export interface Anchor {
   /** Viewport coordinates of the selection, as measured when it was made. */
@@ -89,6 +103,27 @@ type Content =
 let host: HTMLDivElement | null = null
 let root: ShadowRoot | null = null
 
+/** What is on screen, so a scroll can re-place the chip. */
+let shown: { layer: HTMLElement; anchor: Anchor; isChip: boolean } | null = null
+let scrollTimer: number | undefined
+
+/**
+ * The callout re-decides its side whenever the selection moves in the viewport,
+ * so a chip placed before the scroll can end up under it. Wait for the scroll
+ * to settle and place the chip again from where the selection is now; the
+ * panels stay put, since tapping the chip cleared the selection and the callout
+ * with it.
+ */
+function onScroll(): void {
+  window.clearTimeout(scrollTimer)
+  scrollTimer = window.setTimeout(() => {
+    if (!shown?.isChip || !shown.layer.isConnected) return
+    const { layer, anchor } = shown
+    shown.anchor = anchorNow(anchor, { scrollX: window.scrollX, scrollY: window.scrollY })
+    position(layer, shown.anchor, true)
+  }, SCROLL_SETTLE_MS)
+}
+
 function ensureRoot(): ShadowRoot {
   if (root && host?.isConnected) return root
   host = document.createElement('div')
@@ -98,6 +133,7 @@ function ensureRoot(): ShadowRoot {
   style.textContent = STYLE
   root.append(style)
   document.documentElement.append(host)
+  if (IS_TOUCH) window.addEventListener('scroll', onScroll, { passive: true })
   return root
 }
 
@@ -107,6 +143,9 @@ export function isOwnElement(target: EventTarget | null): boolean {
 }
 
 export function dismiss(): void {
+  window.removeEventListener('scroll', onScroll)
+  window.clearTimeout(scrollTimer)
+  shown = null
   host?.remove()
   host = null
   root = null
@@ -163,12 +202,16 @@ export function show(anchor: Anchor, content: Content): void {
   }
 
   shadow.append(layer)
-  position(layer, anchor, content.kind === 'chip')
+  shown = { layer, anchor, isChip: content.kind === 'chip' }
+  position(layer, anchor, shown.isChip)
 }
 
 /**
- * Anchors above the selection: the iOS callout (Copy / Look Up) takes the space
- * below it, so sitting on top is what avoids overlapping it.
+ * On touch the iOS callout (Copy / Look Up / Translate) shares the selection
+ * with us and a page cannot ask where it went, so we take the side it does not:
+ * it goes above when it has room there, and below otherwise. The chip is also
+ * aligned to the end of the selection rather than its centre, which keeps the
+ * two apart on both axes. On macOS there is no callout and the panel sits above.
  *
  * Placement is decided in viewport space — using the coordinates captured when
  * the selection was made, not the live ones — and then written out in page
@@ -177,13 +220,19 @@ export function show(anchor: Anchor, content: Content): void {
  * the same spot even if the user scrolled while the translation was running.
  */
 function position(layer: HTMLElement, anchor: Anchor, isChip = false): void {
+  const viewport = { width: window.innerWidth, height: window.innerHeight }
+  // Keep the selection state so scrolling back can reveal the chip again.
+  const hideChip = isChip && !intersectsViewport(anchor, viewport)
+  layer.style.visibility = hideChip ? 'hidden' : 'visible'
+  if (hideChip) return
+
   const { width, height } = layer.getBoundingClientRect()
   const spot = placement(
     anchor,
     { width, height },
-    { width: window.innerWidth, height: window.innerHeight },
+    viewport,
     {
-      prefer: 'above',
+      prefer: IS_TOUCH ? sideAwayFromCallout(anchor.top) : 'above',
       gap: CALLOUT_GAP,
       align: isChip ? 'end' : 'center',
     },

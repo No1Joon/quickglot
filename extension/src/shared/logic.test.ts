@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  anchorNow,
+  calloutSide,
   isTranslatable,
+  intersectsViewport,
   placement,
   RTL_LANGUAGES,
+  sideAwayFromCallout,
   toPageCoordinates,
   CALLOUT_GAP,
+  CALLOUT_HEIGHT,
   GAP,
   MARGIN,
 } from './logic.ts'
@@ -21,7 +26,29 @@ test('panel sits below the selection when nothing asks otherwise', () => {
   assert.equal(left, 500 - size.width / 2)
 })
 
-test('preferring above puts it over the selection, clear of the iOS callout', () => {
+test('the iOS callout sits above the selection when it fits, else below', () => {
+  assert.equal(calloutSide(CALLOUT_HEIGHT), 'above')
+  assert.equal(calloutSide(CALLOUT_HEIGHT - 1), 'below')
+  assert.equal(calloutSide(0), 'below')
+})
+
+test('our UI takes the side the callout does not', () => {
+  assert.equal(sideAwayFromCallout(400), 'below', 'callout above, so we go below')
+  assert.equal(sideAwayFromCallout(20), 'above', 'callout below, so we go above')
+})
+
+test('the anchor follows the page as it scrolls', () => {
+  const measured = { top: 400, bottom: 420, left: 100, right: 300, scrollX: 0, scrollY: 1000 }
+  const now = anchorNow(measured, { scrollX: 10, scrollY: 1350 })
+  assert.equal(now.top, 50, 'scrolled down 350, so it is 350 higher in the viewport')
+  assert.equal(now.bottom, 70)
+  assert.equal(now.left, 90)
+  assert.equal(now.right, 290)
+  assert.equal(now.scrollY, 1350, 'and the new scroll is what page coordinates add back')
+  assert.equal(calloutSide(now.top), 'below', 'which is what moves the callout below it')
+})
+
+test('preferring above puts it over the selection', () => {
   const anchor = { top: 400, bottom: 420, left: 400, right: 600 }
   const { top } = placement(anchor, size, viewport, { prefer: 'above', gap: CALLOUT_GAP })
   assert.equal(top, 400 - size.height - CALLOUT_GAP)
@@ -68,7 +95,7 @@ test('right-to-left targets are recognised', () => {
   assert.ok(!RTL_LANGUAGES.has('en'))
 })
 
-test('the chip aligns to the end of the selection, away from the iOS callout', () => {
+test('the chip aligns to the end of the selection', () => {
   const anchor = { top: 400, bottom: 420, left: 300, right: 700 }
   const centred = placement(anchor, size, viewport)
   const aligned = placement(anchor, size, viewport, {
@@ -115,4 +142,31 @@ test('two letters are enough, in any script and with anything around them', () =
   assert.equal(isTranslatable('a b'), true)
   assert.equal(isTranslatable('1st'), true)
   assert.equal(isTranslatable('Hello, world!'), true)
+})
+
+
+test('scrolling a selection outside any viewport edge hides its chip', () => {
+  const measured = { top: 400, bottom: 420, left: 100, right: 300, scrollX: 1000, scrollY: 1000 }
+  for (const scroll of [
+    { scrollX: 1000, scrollY: 1420 },
+    { scrollX: 1000, scrollY: 600 },
+    { scrollX: 1300, scrollY: 1000 },
+    { scrollX: 100, scrollY: 1000 },
+  ]) {
+    const outside = anchorNow(measured, scroll)
+    assert.equal(intersectsViewport(outside, viewport), false)
+    const restored = anchorNow(outside, { scrollX: 1000, scrollY: 1000 })
+    assert.equal(intersectsViewport(restored, viewport), true, 'scrolling back restores visibility')
+  }
+})
+
+test('a partly visible selection still offers its chip', () => {
+  for (const anchor of [
+    { top: -10, bottom: 10, left: 100, right: 200 },
+    { top: 790, bottom: 810, left: 100, right: 200 },
+    { top: 100, bottom: 120, left: -10, right: 10 },
+    { top: 100, bottom: 120, left: 990, right: 1010 },
+  ]) {
+    assert.equal(intersectsViewport(anchor, viewport), true)
+  }
 })
