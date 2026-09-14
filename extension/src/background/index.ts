@@ -4,15 +4,25 @@ import {
   type TranslateRequest,
   type TranslateResponse,
 } from '../shared/messages'
-import { cacheKey } from '../shared/logic'
 
 /** Safari ignores this identifier and routes to the containing app's extension handler. */
 const NATIVE_APP = 'application.id'
 
 const CACHE_LIMIT = 200
-const cache = new Map<string, TranslateResponse>()
 
-function remember(key: string, res: TranslateResponse): void {
+/**
+ * Keyed by text alone. The pinned target the answer was produced under rides
+ * along in the entry, and a hit is only served after the native side confirms
+ * that setting is still current — see `translate` for why that check cannot
+ * happen up front.
+ */
+interface Entry {
+  pinned: string
+  res: Extract<TranslateResponse, { ok: true }>
+}
+const cache = new Map<string, Entry>()
+
+function remember(text: string, res: TranslateResponse): void {
   // Only successes are worth keeping — a `notInstalled` answer goes stale the
   // moment the user downloads the language pack in the container app.
   if (!res.ok) return
@@ -20,13 +30,40 @@ function remember(key: string, res: TranslateResponse): void {
     const oldest = cache.keys().next().value
     if (oldest !== undefined) cache.delete(oldest)
   }
-  cache.set(key, res)
+  cache.set(text, { pinned: res.pinned, res })
 }
 
+/**
+ * The pinned target as the native side sees it right now. The popup announces
+ * its own changes, but the app writes the same setting from its "To" row and
+ * has no way to tell this worker, so a remembered value could serve a cached
+ * translation into a language the user has since moved away from.
+ */
+async function currentPinned(): Promise<string | undefined> {
+  try {
+    const res = (await browser.runtime.sendNativeMessage(NATIVE_APP, {
+      type: 'target',
+    })) as SettingsResponse | undefined
+    return res && res.ok ? res.target : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * One native round trip on the common path. Asking for the pinned target first
+ * and then translating doubled the cost on iOS, where each message can mean
+ * launching the handler process. So the native side resolves the target itself
+ * and reports what it used; only a cache hit pays for the extra question, and
+ * that is still cheaper than translating again.
+ */
 async function translate(req: TranslateRequest): Promise<TranslateResponse> {
-  const key = cacheKey(req)
-  const hit = cache.get(key)
-  if (hit) return hit
+  const hit = cache.get(req.text)
+  if (hit) {
+    const pinned = await currentPinned()
+    if (pinned === hit.pinned) return hit.res
+    cache.delete(req.text)
+  }
 
   try {
     const res = (await browser.runtime.sendNativeMessage(
@@ -37,7 +74,7 @@ async function translate(req: TranslateRequest): Promise<TranslateResponse> {
     if (!res || typeof res !== 'object' || !('ok' in res)) {
       return { ok: false, error: 'unknown', message: 'Malformed native response' }
     }
-    remember(key, res)
+    remember(req.text, res)
     return res
   } catch (e) {
     return {
@@ -45,25 +82,6 @@ async function translate(req: TranslateRequest): Promise<TranslateResponse> {
       error: 'unknown',
       message: e instanceof Error ? e.message : String(e),
     }
-  }
-}
-
-/**
- * The pinned target, read before every request. It is only needed to key the
- * response cache — the native side reads the same shared setting and would
- * resolve the target anyway. It cannot be cached for the worker's lifetime: the
- * popup announces its changes, but the app writes the same setting from its
- * "To" row and has no way to tell this worker, so a remembered value would key
- * cache hits to a language the user has since moved away from.
- */
-async function resolveTarget(): Promise<string | undefined> {
-  try {
-    const res = (await browser.runtime.sendNativeMessage(NATIVE_APP, {
-      type: 'target',
-    })) as SettingsResponse | undefined
-    return res && res.ok && res.target ? res.target : undefined
-  } catch {
-    return undefined
   }
 }
 
@@ -86,12 +104,6 @@ browser.runtime.onMessage.addListener(
       return Promise.resolve({ ok: false, error: 'undetectable', message: 'Empty selection' })
     }
 
-    return resolveTarget().then((target) =>
-      translate({
-        type: 'translate',
-        text: text.slice(0, MAX_SELECTION_LENGTH),
-        target,
-      }),
-    )
+    return translate({ type: 'translate', text: text.slice(0, MAX_SELECTION_LENGTH) })
   },
 )

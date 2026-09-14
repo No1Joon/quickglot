@@ -24,7 +24,7 @@ private enum Failure: String {
 }
 
 private enum Payload {
-    case success(text: String, source: String, target: String)
+    case success(text: String, source: String, target: String, pinned: String?)
     case languages([[String: String]])
     case settings(target: String?, languages: [[String: String]])
     case failure(Failure, String)
@@ -32,7 +32,7 @@ private enum Payload {
     /// Log-safe description: never includes the selected text or its translation.
     var summary: String {
         switch self {
-        case let .success(_, source, target): return "ok \(source)->\(target)"
+        case let .success(_, source, target, _): return "ok \(source)->\(target)"
         case let .languages(list): return "languages \(list.count)"
         case let .settings(target, list): return "settings target=\(target ?? "auto") langs=\(list.count)"
         case let .failure(error, _): return "fail \(error.rawValue)"
@@ -41,8 +41,9 @@ private enum Payload {
 
     var dictionary: [String: Any] {
         switch self {
-        case let .success(text, source, target):
-            return ["ok": true, "text": text, "source": source, "target": target]
+        case let .success(text, source, target, pinned):
+            return ["ok": true, "text": text, "source": source, "target": target,
+                    "pinned": pinned ?? ""]
         case let .languages(list):
             return ["ok": true, "languages": list]
         case let .settings(target, list):
@@ -88,6 +89,38 @@ enum SharedSettings {
 }
 
 // MARK: - Translation
+
+/// Sessions kept for as long as this process lives. Creating one loads the
+/// model for the pair, which is most of what a request costs; the system's
+/// own Translate keeps its session warm, and this is the closest an extension
+/// gets. iOS retires the handler process freely, so nothing here is relied on
+/// — it only saves the load when the process happens to survive.
+private actor SessionCache {
+    static let shared = SessionCache()
+    private var sessions: [String: TranslationSession] = [:]
+
+    private static func key(_ source: Locale.Language, _ target: Locale.Language) -> String {
+        "\(source.minimalIdentifier)->\(target.minimalIdentifier)"
+    }
+
+    func session(from source: Locale.Language, to target: Locale.Language) -> TranslationSession? {
+        sessions[Self.key(source, target)]
+    }
+
+    func store(_ session: TranslationSession, from source: Locale.Language, to target: Locale.Language) {
+        sessions[Self.key(source, target)] = session
+    }
+
+    func drop(from source: Locale.Language, to target: Locale.Language) {
+        sessions[Self.key(source, target)] = nil
+    }
+}
+
+/// Milliseconds since `start`, for the timing lines in the log. The numbers are
+/// the only way to tell which step is slow on a device, so they stay in.
+private func elapsed(since start: ContinuousClock.Instant) -> Int {
+    Int((ContinuousClock.now - start) / .milliseconds(1))
+}
 
 private enum Translator {
     /// Selections shorter than this are too ambiguous for reliable language ID
@@ -140,9 +173,11 @@ private enum Translator {
     }
 
     static func translate(text: String, requestedTarget: String?) async -> Payload {
+        let started = ContinuousClock.now
         guard let source = detect(text) else {
             return .failure(.undetectable, "Could not identify the language of the selection")
         }
+        log.info("detect \(elapsed(since: started), privacy: .public)ms")
 
         let candidates = requestedTarget
             .map { [Locale.Language(identifier: $0)] } ?? preferredTargets()
@@ -159,6 +194,13 @@ private enum Translator {
         var downloadable: Locale.Language?
 
         for candidate in usable {
+            // Check each candidate in preference order. A cache miss says
+            // nothing about installation, so resolve it before trying the next.
+            if let session = await SessionCache.shared.session(from: source, to: candidate) {
+                log.info("session reused \(elapsed(since: started), privacy: .public)ms")
+                return await run(session, text: text, from: source, to: candidate,
+                                 pinned: requestedTarget, started: started)
+            }
             switch await availability.status(from: source, to: candidate) {
             case .installed:
                 installed = candidate
@@ -171,6 +213,8 @@ private enum Translator {
             }
             if installed != nil { break }
         }
+
+        log.info("availability \(elapsed(since: started), privacy: .public)ms")
 
         guard let target = installed else {
             if let pending = downloadable {
@@ -185,15 +229,42 @@ private enum Translator {
             )
         }
 
+        let session: TranslationSession
         do {
-            let session = try TranslationSession(installedSource: source, target: target)
+            session = try TranslationSession(installedSource: source, target: target)
+        } catch {
+            return failure(error)
+        }
+        await SessionCache.shared.store(session, from: source, to: target)
+        log.info("session created \(elapsed(since: started), privacy: .public)ms")
+        return await run(session, text: text, from: source, to: target,
+                         pinned: requestedTarget, started: started)
+    }
+
+    private static func run(
+        _ session: TranslationSession, text: String,
+        from source: Locale.Language, to target: Locale.Language,
+        pinned: String?, started: ContinuousClock.Instant
+    ) async -> Payload {
+        do {
             let response = try await session.translate(text)
+            log.info("translate \(elapsed(since: started), privacy: .public)ms")
             return .success(
                 text: response.targetText,
                 source: label(response.sourceLanguage),
-                target: label(response.targetLanguage)
+                target: label(response.targetLanguage),
+                pinned: pinned
             )
-        } catch let error as TranslationError {
+        } catch {
+            // Whatever went wrong, a session that failed once is not worth a
+            // second try — the next request builds a fresh one.
+            await SessionCache.shared.drop(from: source, to: target)
+            return failure(error)
+        }
+    }
+
+    private static func failure(_ error: Error) -> Payload {
+        if let error = error as? TranslationError {
             switch error {
             case .notInstalled:
                 return .failure(.notInstalled, "Language pair is not downloaded")
@@ -205,10 +276,9 @@ private enum Translator {
                 log.error("translation failed: \(error.localizedDescription, privacy: .public)")
                 return .failure(.unknown, error.localizedDescription)
             }
-        } catch {
-            log.error("translation failed: \(error.localizedDescription, privacy: .public)")
-            return .failure(.unknown, error.localizedDescription)
         }
+        log.error("translation failed: \(error.localizedDescription, privacy: .public)")
+        return .failure(.unknown, error.localizedDescription)
     }
 }
 
