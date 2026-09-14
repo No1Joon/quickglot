@@ -5,6 +5,7 @@ import {
   cacheKey,
   calloutSide,
   isTranslatable,
+  intersectsViewport,
   placement,
   RTL_LANGUAGES,
   sideAwayFromCallout,
@@ -159,4 +160,31 @@ test('two letters are enough, in any script and with anything around them', () =
   assert.equal(isTranslatable('a b'), true)
   assert.equal(isTranslatable('1st'), true)
   assert.equal(isTranslatable('Hello, world!'), true)
+})
+
+
+test('scrolling a selection outside any viewport edge hides its chip', () => {
+  const measured = { top: 400, bottom: 420, left: 100, right: 300, scrollX: 1000, scrollY: 1000 }
+  for (const scroll of [
+    { scrollX: 1000, scrollY: 1420 },
+    { scrollX: 1000, scrollY: 600 },
+    { scrollX: 1300, scrollY: 1000 },
+    { scrollX: 100, scrollY: 1000 },
+  ]) {
+    const outside = anchorNow(measured, scroll)
+    assert.equal(intersectsViewport(outside, viewport), false)
+    const restored = anchorNow(outside, { scrollX: 1000, scrollY: 1000 })
+    assert.equal(intersectsViewport(restored, viewport), true, 'scrolling back restores visibility')
+  }
+})
+
+test('a partly visible selection still offers its chip', () => {
+  for (const anchor of [
+    { top: -10, bottom: 10, left: 100, right: 200 },
+    { top: 790, bottom: 810, left: 100, right: 200 },
+    { top: 100, bottom: 120, left: -10, right: 10 },
+    { top: 100, bottom: 120, left: 990, right: 1010 },
+  ]) {
+    assert.equal(intersectsViewport(anchor, viewport), true)
+  }
 })

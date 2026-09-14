@@ -98,6 +98,12 @@ export function anchorNow<T extends Rect & { scrollX: number; scrollY: number }>
   }
 }
 
+/** Whether any of the selection remains inside the viewport. */
+export function intersectsViewport(anchor: Rect, viewport: Viewport): boolean {
+  return anchor.bottom > 0 && anchor.top < viewport.height &&
+    anchor.right > 0 && anchor.left < viewport.width
+}
+
 /**
  * Where the panel goes, in viewport coordinates. Below the selection unless
  * asked otherwise; flipped to the other side only when there is no room.

@@ -70,6 +70,7 @@ const STYLE = `
 import {
   anchorNow,
   CALLOUT_GAP,
+  intersectsViewport,
   placement,
   RTL_LANGUAGES,
   sideAwayFromCallout,
@@ -219,11 +220,17 @@ export function show(anchor: Anchor, content: Content): void {
  * the same spot even if the user scrolled while the translation was running.
  */
 function position(layer: HTMLElement, anchor: Anchor, isChip = false): void {
+  const viewport = { width: window.innerWidth, height: window.innerHeight }
+  // Keep the selection state so scrolling back can reveal the chip again.
+  const hideChip = isChip && !intersectsViewport(anchor, viewport)
+  layer.style.visibility = hideChip ? 'hidden' : 'visible'
+  if (hideChip) return
+
   const { width, height } = layer.getBoundingClientRect()
   const spot = placement(
     anchor,
     { width, height },
-    { width: window.innerWidth, height: window.innerHeight },
+    viewport,
     {
       prefer: IS_TOUCH ? sideAwayFromCallout(anchor.top) : 'above',
       gap: CALLOUT_GAP,
