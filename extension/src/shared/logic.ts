@@ -1,25 +1,12 @@
 /**
  * Pure logic lifted out of the content script and background so it can be
  * tested without a browser. Every function here is one that has already gone
- * wrong once — the cache key carried an invisible NUL, the panel was positioned
- * from stale coordinates, and selections inside inputs were nearly translated.
+ * wrong once — the panel was positioned from stale coordinates, and selections
+ * inside inputs were nearly translated.
  */
 
 /** Right-to-left scripts among the languages Apple's models cover. */
 export const RTL_LANGUAGES = new Set(['ar', 'he', 'fa', 'ur'])
-
-export interface CacheKeyInput {
-  text: string
-  target?: string
-}
-
-/**
- * A language code can never contain U+0000, so no target/text pair can collide
- * with another by shifting the boundary between them.
- */
-export function cacheKey({ text, target }: CacheKeyInput): string {
-  return `${target ?? '*'}\u0000${text}`
-}
 
 /**
  * Whether a selection is worth offering to translate. Trimmed already by the
