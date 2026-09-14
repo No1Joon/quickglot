@@ -187,16 +187,6 @@ private enum Translator {
             return .failure(.sameLanguage, "Already in your language")
         }
 
-        // A pair we already hold a session for is installed by definition, and
-        // asking the availability service again would only add a round trip.
-        for candidate in usable {
-            if let session = await SessionCache.shared.session(from: source, to: candidate) {
-                log.info("session reused \(elapsed(since: started), privacy: .public)ms")
-                return await run(session, text: text, from: source, to: candidate,
-                                 pinned: requestedTarget, started: started)
-            }
-        }
-
         // Prefer a pair that is ready to go; remember the best downloadable
         // alternative so the user can be told what to fetch.
         let availability = LanguageAvailability()
@@ -204,6 +194,13 @@ private enum Translator {
         var downloadable: Locale.Language?
 
         for candidate in usable {
+            // Check each candidate in preference order. A cache miss says
+            // nothing about installation, so resolve it before trying the next.
+            if let session = await SessionCache.shared.session(from: source, to: candidate) {
+                log.info("session reused \(elapsed(since: started), privacy: .public)ms")
+                return await run(session, text: text, from: source, to: candidate,
+                                 pinned: requestedTarget, started: started)
+            }
             switch await availability.status(from: source, to: candidate) {
             case .installed:
                 installed = candidate
