@@ -37,7 +37,10 @@ export interface TranslateRequest {
   type: 'translate'
   /** Raw selected text, already trimmed and length-capped by the content script. */
   text: string
-  /** BCP-47 tag. Omit to let the native side use the user's preferred language. */
+  /**
+   * BCP-47 tag. Omitted in practice: the native side reads the pinned target
+   * from the shared setting and falls back to the user's preferred languages.
+   */
   target?: string
 }
 
@@ -53,7 +56,14 @@ export type TranslateFailure =
   | 'unknown'
 
 export type TranslateResponse =
-  | { ok: true; text: string; source: string; target: string }
+  | {
+      ok: true
+      text: string
+      source: string
+      target: string
+      /** The pinned target this answer was produced under; empty for automatic. */
+      pinned: string
+    }
   | { ok: false; error: TranslateFailure; message: string; source?: string }
 
 export const MAX_SELECTION_LENGTH = 5000

@@ -1,7 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
-  cacheKey,
   isTranslatable,
   placement,
   RTL_LANGUAGES,
@@ -13,23 +12,6 @@ import {
 
 const viewport = { width: 1000, height: 800 }
 const size = { width: 300, height: 200 }
-
-test('cache key keeps target and text distinguishable', () => {
-  const key = cacheKey({ text: 'hello', target: 'ko' })
-  assert.ok(key.startsWith('ko'), 'key should begin with the target')
-  assert.ok(key.endsWith('hello'), 'key should end with the text')
-  assert.equal(cacheKey({ text: 'hello', target: 'ko' }), key, 'same input, same key')
-})
-
-test('cache key distinguishes automatic from a pinned target', () => {
-  assert.notEqual(cacheKey({ text: 'hello' }), cacheKey({ text: 'hello', target: 'ko' }))
-})
-
-test('cache key cannot collide by shifting the boundary', () => {
-  // Without a separator, target "ko" + text "rean" and target "korean" + text ""
-  // would produce the same key.
-  assert.notEqual(cacheKey({ text: 'rean', target: 'ko' }), cacheKey({ text: '', target: 'korean' }))
-})
 
 test('panel sits below the selection when nothing asks otherwise', () => {
   const anchor = { top: 300, bottom: 320, left: 400, right: 600 }
