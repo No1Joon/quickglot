@@ -96,6 +96,7 @@ function describe(res: Extract<TranslateResponse, { ok: false }>): {
 
 async function translate(selected: Selected): Promise<void> {
   const ticket = ++sequence
+  const started = performance.now()
   const loading = window.setTimeout(() => {
     // A newer selection may have superseded this one while we waited.
     if (ticket === sequence) show(selected.anchor, { kind: 'loading' })
@@ -115,6 +116,7 @@ async function translate(selected: Selected): Promise<void> {
     }
   }
 
+  console.debug(`[QuickGlot] translation round trip ${Math.round(performance.now() - started)}ms`)
   window.clearTimeout(loading)
 
   // A newer selection superseded this one while the native side was working.
@@ -148,10 +150,12 @@ async function translate(selected: Selected): Promise<void> {
  * must not dismiss the translation the tap just asked for.
  */
 let resultPinned = false
+let pinnedSelection: Selected | null = null
 
 function close(): void {
   sequence++
   resultPinned = false
+  pinnedSelection = null
   dismiss()
 }
 
@@ -166,21 +170,30 @@ function start(): void {
           if (!resultPinned) close()
           return
         }
+        if (resultPinned && pinnedSelection &&
+          selected.text === pinnedSelection.text &&
+          selected.anchor.top + selected.anchor.scrollY ===
+            pinnedSelection.anchor.top + pinnedSelection.anchor.scrollY &&
+          selected.anchor.left + selected.anchor.scrollX ===
+            pinnedSelection.anchor.left + pinnedSelection.anchor.scrollX) return
         resultPinned = false
+        pinnedSelection = null
         sequence++
         show(selected.anchor, {
           kind: 'chip',
           onTap: () => {
+            window.clearTimeout(timer)
             resultPinned = true
+            pinnedSelection = selected
             void translate(selected)
           },
         })
       }, SELECTION_DEBOUNCE_MS)
     })
 
-    // With the result pinned, a tap outside it is the way to dismiss.
+    // A click is a completed tap; pointerdown also starts scrolling.
     document.addEventListener(
-      'pointerdown',
+      'click',
       (event) => {
         if (!isOwnElement(event.target)) close()
       },
@@ -209,9 +222,14 @@ function start(): void {
     if (event.key === 'Escape') close()
   })
 
-  // Deliberately not dismissed on scroll: the panel is anchored to the page, so
-  // it stays with the text it translated. A resize does invalidate the anchor.
-  window.addEventListener('resize', close)
+  // Safari's collapsing toolbar changes height during scrolling. Only a width
+  // change invalidates the text layout on touch; desktop keeps its resize rule.
+  let viewportWidth = window.innerWidth
+  window.addEventListener('resize', () => {
+    const widthChanged = window.innerWidth !== viewportWidth
+    viewportWidth = window.innerWidth
+    if (!IS_TOUCH || widthChanged) close()
+  })
 }
 
 if (!alreadyRunning) start()

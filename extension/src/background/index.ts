@@ -58,18 +58,23 @@ async function currentPinned(): Promise<string | undefined> {
  * that is still cheaper than translating again.
  */
 async function translate(req: TranslateRequest): Promise<TranslateResponse> {
+  const started = performance.now()
   const hit = cache.get(req.text)
   if (hit) {
     const pinned = await currentPinned()
+    console.debug(`[QuickGlot] cached target check ${Math.round(performance.now() - started)}ms`)
     if (pinned === hit.pinned) return hit.res
     cache.delete(req.text)
   }
 
   try {
+    const nativeStarted = performance.now()
     const res = (await browser.runtime.sendNativeMessage(
       NATIVE_APP,
       req,
     )) as TranslateResponse | undefined
+
+    console.debug(`[QuickGlot] native translation ${Math.round(performance.now() - nativeStarted)}ms`)
 
     if (!res || typeof res !== 'object' || !('ok' in res)) {
       return { ok: false, error: 'unknown', message: 'Malformed native response' }
