@@ -30,6 +30,8 @@ async function harness() {
   let id = 0
   let text = 'Hello there'
   let top = 300
+  let node = {}
+  let offset = 0
   let requests = 0
   const addEventListener = (name: string, callback: (event: object) => void) => {
     handlers.set(name, [...(handlers.get(name) ?? []), callback])
@@ -48,7 +50,8 @@ async function harness() {
       getSelection: () => ({
         isCollapsed: text === '', rangeCount: 1, anchorNode: null,
         toString: () => text,
-        getRangeAt: () => ({ getBoundingClientRect: () => ({
+        getRangeAt: () => ({ startContainer: node, endContainer: node,
+          startOffset: offset, endOffset: offset + text.length, getBoundingClientRect: () => ({
           top: top - window.scrollY, bottom: top + 20 - window.scrollY,
           left: 20, right: 180, width: 160, height: 20,
         }) }),
@@ -61,7 +64,10 @@ async function harness() {
     rendered: null as null | { kind: string; onTap?: () => void },
   }
   runInNewContext((await bundled).outputFiles![0]!.text, context)
-  const emit = (type: string, event = {}) => handlers.get(type)?.forEach(fn => fn(event))
+  const emit = (type: string, event = {}) => handlers.get(type)?.forEach(fn => fn({
+    pointerId: 1, isPrimary: true, button: 0, clientX: 10, clientY: 10, timeStamp: 100,
+    ...event,
+  }))
   const settleSelection = () => {
     emit('selectionchange')
     const pending = [...timers.values()]
@@ -74,7 +80,8 @@ async function harness() {
   await setImmediate()
   assert.equal(context.rendered?.kind, 'result')
   return { context, emit, settleSelection, setText: (value: string) => { text = value },
-    setTop: (value: number) => { top = value }, requests: () => requests }
+    setTop: (value: number) => { top = value },
+    changeNode: () => { node = {} }, changeOffset: () => { offset += 20 }, requests: () => requests }
 }
 
 test('iOS scroll gesture and toolbar resize preserve the translated result', async () => {
@@ -95,9 +102,11 @@ test('iOS scroll gesture and toolbar resize preserve the translated result', asy
 
 test('completed outside tap dismisses, but tapping the panel does not', async () => {
   const h = await harness()
-  h.emit('click', { target: 'panel' })
+  h.emit('pointerdown', { target: 'panel' })
+  h.emit('pointerup', { target: 'panel' })
   assert.equal(h.context.rendered?.kind, 'result')
-  h.emit('click', { target: 'page' })
+  h.emit('pointerdown', { target: 'page' })
+  h.emit('pointerup', { target: 'page' })
   assert.equal(h.context.rendered, null)
 })
 
@@ -111,6 +120,39 @@ test('rotation invalidates the anchor', async () => {
 test('selecting identical words elsewhere replaces the pinned result with a chip', async () => {
   const h = await harness()
   h.setTop(600)
+  h.changeNode()
   h.settleSelection()
   assert.equal(h.context.rendered?.kind, 'chip')
+})
+
+
+test('subpixel drift of the same DOM selection preserves the result', async () => {
+  const h = await harness()
+  h.context.window.scrollY = 100.3333
+  h.setTop(300.3333)
+  h.settleSelection()
+  assert.equal(h.context.rendered?.kind, 'result')
+})
+
+test('identical text at different offsets is a new selection', async () => {
+  const h = await harness()
+  h.changeOffset()
+  h.settleSelection()
+  assert.equal(h.context.rendered?.kind, 'chip')
+})
+
+test('drags, scrolls, cancellations, long presses and multi-touch are not taps', async () => {
+  for (const gesture of ['move', 'scroll', 'cancel', 'hold', 'multi', 'up-moved']) {
+    const h = await harness()
+    h.emit('pointerdown', { target: 'page' })
+    if (gesture === 'move') h.emit('pointermove', { clientY: 50 })
+    if (gesture === 'scroll') h.emit('scroll')
+    if (gesture === 'cancel') h.emit('pointercancel')
+    if (gesture === 'multi') h.emit('pointerdown', { pointerId: 2, isPrimary: false })
+    h.emit('pointerup', { target: 'page',
+      timeStamp: gesture === 'hold' ? 800 : 200,
+      clientY: gesture === 'up-moved' ? 50 : 10,
+    })
+    assert.equal(h.context.rendered?.kind, 'result', gesture)
+  }
 })

@@ -38,6 +38,10 @@ let sequence = 0
 interface Selected {
   text: string
   anchor: Anchor
+  startContainer: Node
+  startOffset: number
+  endContainer: Node
+  endOffset: number
 }
 
 function isEditable(node: Node | null): boolean {
@@ -58,12 +62,17 @@ function readSelection(): Selected | null {
   if (!isTranslatable(text)) return null
   if (isEditable(selection.anchorNode)) return null
 
-  const rect = selection.getRangeAt(0).getBoundingClientRect()
+  const range = selection.getRangeAt(0)
+  const rect = range.getBoundingClientRect()
   // Collapsed or off-screen rects give us nothing to anchor to.
   if (rect.width === 0 && rect.height === 0) return null
 
   return {
     text: text.slice(0, MAX_SELECTION_LENGTH),
+    startContainer: range.startContainer,
+    startOffset: range.startOffset,
+    endContainer: range.endContainer,
+    endOffset: range.endOffset,
     anchor: {
       top: rect.top,
       bottom: rect.bottom,
@@ -172,10 +181,10 @@ function start(): void {
         }
         if (resultPinned && pinnedSelection &&
           selected.text === pinnedSelection.text &&
-          selected.anchor.top + selected.anchor.scrollY ===
-            pinnedSelection.anchor.top + pinnedSelection.anchor.scrollY &&
-          selected.anchor.left + selected.anchor.scrollX ===
-            pinnedSelection.anchor.left + pinnedSelection.anchor.scrollX) return
+          selected.startContainer === pinnedSelection.startContainer &&
+          selected.startOffset === pinnedSelection.startOffset &&
+          selected.endContainer === pinnedSelection.endContainer &&
+          selected.endOffset === pinnedSelection.endOffset) return
         resultPinned = false
         pinnedSelection = null
         sequence++
@@ -191,14 +200,31 @@ function start(): void {
       }, SELECTION_DEBOUNCE_MS)
     })
 
-    // A click is a completed tap; pointerdown also starts scrolling.
-    document.addEventListener(
-      'click',
-      (event) => {
-        if (!isOwnElement(event.target)) close()
-      },
-      true,
-    )
+    // Track a completed tap without depending on Safari's synthesized click.
+    // Scrolling, selection drags, long presses and multi-touch must not dismiss.
+    let tap: { id: number; x: number; y: number; time: number } | null = null
+    const moved = (event: PointerEvent) => tap !== null &&
+      Math.hypot(event.clientX - tap.x, event.clientY - tap.y) > 10
+    document.addEventListener('pointerdown', (event) => {
+      tap = event.isPrimary && event.button === 0 && !isOwnElement(event.target)
+        ? { id: event.pointerId, x: event.clientX, y: event.clientY, time: event.timeStamp }
+        : null
+    }, true)
+    document.addEventListener('pointermove', (event) => {
+      if (tap?.id === event.pointerId && moved(event)) tap = null
+    }, true)
+    document.addEventListener('pointercancel', () => { tap = null }, true)
+    document.addEventListener('scroll', () => { tap = null }, true)
+    document.addEventListener('pointerup', (event) => {
+      if (tap?.id !== event.pointerId) return
+      const dismissTap = !moved(event) && event.timeStamp - tap.time < 500 &&
+        !isOwnElement(event.target)
+      tap = null
+      if (dismissTap) {
+        window.clearTimeout(timer)
+        close()
+      }
+    }, true)
   } else {
     document.addEventListener('mouseup', (event) => {
       if (isOwnElement(event.target)) return
