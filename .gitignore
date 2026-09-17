@@ -1,0 +1,49 @@
+# Node
+node_modules/
+*.log
+
+# 빌드 산출물 — dist/ 는 Xcode 가 참조하고, site/ 는 CI 가 Pages 로 배포한다.
+dist/
+site/
+build/
+
+# 스토어 콘솔에 사람이 옮겨 적는 메모 — 발행할 이유가 없다(빌드도 읽지 않는다).
+# app-info/policy 는 gen-site.mjs 가 읽으므로 계속 추적한다.
+app-info/store/
+app-info/release/
+
+# 스토어 스크린샷 일습(템플릿·캡처·렌더) — 앱 빌드도 CI 도 읽지 않는 마케팅 산출물이다.
+# design/*.svg 는 계속 추적한다: gen-icons.sh 가 커밋된 아이콘 PNG 를 거기서 만든다.
+design/screenshots/
+
+# 세션 재개 노트 — 일회용이고, 커밋되면 세션 상태가 public 으로 발행된다.
+temp-memory.md
+
+# 설계·작업 문서 — git 에서 제외하되 디스크에는 유지.
+# 에이전트는 파일시스템에서 직접 읽는다(Read 는 .gitignore 무관).
+docs/
+
+# 로컬 에이전트/IDE 설정 — 공유 금지. 에이전트는 파일시스템에서 직접 읽는다.
+# scripts/check-sources.mjs 가 tracked 로 들어오는 것까지 막는다.
+.claude/
+.agents/
+AGENTS.md
+CLAUDE.md
+.antigravitycli/
+
+# 코드리뷰 산출물 — 리뷰 스킬이 /tmp 에 쓰고 종료 시 지우지만 안전망으로 무시까지 건다.
+pr*_diff*
+pr*_meta.json
+pr*_inline*.json
+review_body*.md
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+
+# macOS
+.DS_Store
+
+# 서명·업로드 값. release.sh 는 환경변수로 읽는다 — 리포에 들어오면 안 된다.
+.env
+.env.*

@@ -1,0 +1,10 @@
+<!-- Shared artwork. icon-square.svg and icon-tile.svg differ only in the plate
+     behind this mark, so edit the letterform here and both stay in step.
+
+     A Q rather than a magnifier: the ring plus a diagonal tail is the universal
+     search glyph, and this app does not search. The tail is horizontal and in
+     the accent colour, which reads as the line of text being translated. -->
+<g id="mark">
+  <circle cx="512" cy="452" r="252" fill="none" stroke="#FFFFFF" stroke-width="118"/>
+  <rect x="470" y="700" width="330" height="118" rx="59" fill="#FFD166"/>
+</g>
