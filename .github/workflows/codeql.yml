@@ -1,0 +1,68 @@
+name: CodeQL
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '21 3 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            os: ubuntu-latest
+            build-mode: none
+          - language: javascript-typescript
+            os: ubuntu-latest
+            build-mode: none
+          - language: swift
+            os: macos-latest
+            build-mode: manual
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        if: matrix.language == 'swift'
+        with:
+          node-version: 22
+          cache: npm
+      - name: Build extension resources
+        if: matrix.language == 'swift'
+        run: |
+          npm ci
+          npm run build
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+      - name: Build macOS and iOS for Swift analysis
+        if: matrix.language == 'swift'
+        run: |
+          xcodebuild -project "apple/QuickGlot/QuickGlot.xcodeproj" \
+            -scheme "QuickGlot (macOS)" -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            COMPILATION_CACHE_ENABLE_CACHING=NO SWIFT_ENABLE_COMPILE_CACHE=NO \
+            SWIFT_USE_INTEGRATED_DRIVER=NO build
+          xcodebuild -project "apple/QuickGlot/QuickGlot.xcodeproj" \
+            -scheme "QuickGlot (iOS)" -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO \
+            COMPILATION_CACHE_ENABLE_CACHING=NO SWIFT_ENABLE_COMPILE_CACHE=NO \
+            SWIFT_USE_INTEGRATED_DRIVER=NO build
+      - uses: github/codeql-action/analyze@v4
+        with:
+          category: /language:${{ matrix.language }}
