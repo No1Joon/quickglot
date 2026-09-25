@@ -63,6 +63,36 @@ export function sideAwayFromCallout(anchorTop: number): 'above' | 'below' {
   return calloutSide(anchorTop) === 'above' ? 'below' : 'above'
 }
 
+/** Keep the chip clear of the estimated callout even when the opposite side
+ * has no room. The regular panel placement would flip it onto the callout. */
+export function chipPlacement(
+  anchor: Rect,
+  size: Size,
+  viewport: Viewport,
+): { left: number; top: number } {
+  const menuSide = calloutSide(anchor.top)
+  const preferred = sideAwayFromCallout(anchor.top)
+  const preferredTop = preferred === 'above'
+    ? anchor.top - size.height - CALLOUT_GAP
+    : anchor.bottom + CALLOUT_GAP
+  const fits = preferredTop >= MARGIN &&
+    preferredTop + size.height <= viewport.height - MARGIN
+
+  if (fits) {
+    return placement(anchor, size, viewport, {
+      prefer: preferred, gap: CALLOUT_GAP, align: 'end',
+    })
+  }
+
+  // At a viewport edge, put the chip beyond the callout on its side.
+  const beyondCallout = menuSide === 'above'
+    ? { ...anchor, top: anchor.top - CALLOUT_HEIGHT }
+    : { ...anchor, bottom: anchor.bottom + CALLOUT_HEIGHT }
+  return placement(beyondCallout, size, viewport, {
+    prefer: menuSide, gap: CALLOUT_GAP, align: 'end',
+  })
+}
+
 /**
  * Where the anchor is in the viewport now, given where it was measured and how
  * far the page has scrolled since. Lets the chip follow the callout's
