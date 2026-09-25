@@ -63,33 +63,15 @@ export function sideAwayFromCallout(anchorTop: number): 'above' | 'below' {
   return calloutSide(anchorTop) === 'above' ? 'below' : 'above'
 }
 
-/** Keep the chip clear of the estimated callout even when the opposite side
- * has no room. The regular panel placement would flip it onto the callout. */
+/** Leave room for the system callout on either side of the selection. Safari's
+ * actual menu side is not exposed to the page, so guessing it can overlap. */
 export function chipPlacement(
   anchor: Rect,
   size: Size,
   viewport: Viewport,
 ): { left: number; top: number } {
-  const menuSide = calloutSide(anchor.top)
-  const preferred = sideAwayFromCallout(anchor.top)
-  const preferredTop = preferred === 'above'
-    ? anchor.top - size.height - CALLOUT_GAP
-    : anchor.bottom + CALLOUT_GAP
-  const fits = preferredTop >= MARGIN &&
-    preferredTop + size.height <= viewport.height - MARGIN
-
-  if (fits) {
-    return placement(anchor, size, viewport, {
-      prefer: preferred, gap: CALLOUT_GAP, align: 'end',
-    })
-  }
-
-  // At a viewport edge, put the chip beyond the callout on its side.
-  const beyondCallout = menuSide === 'above'
-    ? { ...anchor, top: anchor.top - CALLOUT_HEIGHT }
-    : { ...anchor, bottom: anchor.bottom + CALLOUT_HEIGHT }
-  return placement(beyondCallout, size, viewport, {
-    prefer: menuSide, gap: CALLOUT_GAP, align: 'end',
+  return placement(anchor, size, viewport, {
+    prefer: 'below', gap: CALLOUT_HEIGHT + CALLOUT_GAP, align: 'end',
   })
 }
 

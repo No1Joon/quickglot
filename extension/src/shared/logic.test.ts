@@ -120,24 +120,25 @@ test('end alignment still respects the viewport margin', () => {
   assert.ok(left >= MARGIN, `left ${left} should respect the margin`)
 })
 
-test('chip near the top sits beyond the callout below the selection', () => {
+test('chip near the top sits beyond a callout below the selection', () => {
   const anchor = { top: 20, bottom: 40, left: 100, right: 220 }
   const chip = chipPlacement(anchor, { width: 100, height: 36 }, { width: 390, height: 800 })
   assert.equal(chip.top, anchor.bottom + CALLOUT_HEIGHT + CALLOUT_GAP)
   assert.equal(chip.left + 100, anchor.right)
 })
 
-test('chip near the bottom sits beyond the callout above the selection', () => {
+test('chip near the bottom sits beyond a callout above the selection', () => {
   const anchor = { top: 750, bottom: 770, left: 100, right: 220 }
   const chip = chipPlacement(anchor, { width: 100, height: 36 }, { width: 390, height: 800 })
   assert.equal(chip.top + 36, anchor.top - CALLOUT_HEIGHT - CALLOUT_GAP)
   assert.equal(chip.left + 100, anchor.right)
 })
 
-test('chip stays on the opposite side when that side has room', () => {
+test('chip clears a callout above or below a mid-screen selection', () => {
   const anchor = { top: 400, bottom: 420, left: 100, right: 220 }
   const chip = chipPlacement(anchor, { width: 100, height: 36 }, { width: 390, height: 800 })
-  assert.equal(chip.top, anchor.bottom + CALLOUT_GAP)
+  assert.equal(chip.top, anchor.bottom + CALLOUT_HEIGHT + CALLOUT_GAP)
+  assert.ok(chip.top >= anchor.bottom + CALLOUT_HEIGHT)
 })
 
 test('a single letter is not offered for translation, whatever surrounds it', () => {
