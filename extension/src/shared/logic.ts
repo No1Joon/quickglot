@@ -63,6 +63,18 @@ export function sideAwayFromCallout(anchorTop: number): 'above' | 'below' {
   return calloutSide(anchorTop) === 'above' ? 'below' : 'above'
 }
 
+/** Leave room for the system callout on either side of the selection. Safari's
+ * actual menu side is not exposed to the page, so guessing it can overlap. */
+export function chipPlacement(
+  anchor: Rect,
+  size: Size,
+  viewport: Viewport,
+): { left: number; top: number } {
+  return placement(anchor, size, viewport, {
+    prefer: 'below', gap: CALLOUT_HEIGHT + CALLOUT_GAP, align: 'end',
+  })
+}
+
 /**
  * Where the anchor is in the viewport now, given where it was measured and how
  * far the page has scrolled since. Lets the chip follow the callout's

@@ -70,6 +70,7 @@ const STYLE = `
 import {
   anchorNow,
   CALLOUT_GAP,
+  chipPlacement,
   intersectsViewport,
   placement,
   RTL_LANGUAGES,
@@ -208,10 +209,9 @@ export function show(anchor: Anchor, content: Content): void {
 
 /**
  * On touch the iOS callout (Copy / Look Up / Translate) shares the selection
- * with us and a page cannot ask where it went, so we take the side it does not:
- * it goes above when it has room there, and below otherwise. The chip is also
- * aligned to the end of the selection rather than its centre, which keeps the
- * two apart on both axes. On macOS there is no callout and the panel sits above.
+ * with us and a page cannot ask where it went. The chip leaves room for the
+ * callout on either side, below when possible and above near the bottom. On
+ * macOS there is no callout and the panel sits above.
  *
  * Placement is decided in viewport space — using the coordinates captured when
  * the selection was made, not the live ones — and then written out in page
@@ -227,16 +227,13 @@ function position(layer: HTMLElement, anchor: Anchor, isChip = false): void {
   if (hideChip) return
 
   const { width, height } = layer.getBoundingClientRect()
-  const spot = placement(
-    anchor,
-    { width, height },
-    viewport,
-    {
+  const spot = isChip && IS_TOUCH
+    ? chipPlacement(anchor, { width, height }, viewport)
+    : placement(anchor, { width, height }, viewport, {
       prefer: IS_TOUCH ? sideAwayFromCallout(anchor.top) : 'above',
       gap: CALLOUT_GAP,
       align: isChip ? 'end' : 'center',
-    },
-  )
+    })
   const page = toPageCoordinates(spot, anchor)
   layer.style.left = `${page.left}px`
   layer.style.top = `${page.top}px`
