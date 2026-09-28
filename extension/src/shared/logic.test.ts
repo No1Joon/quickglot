@@ -134,11 +134,17 @@ test('chip near the bottom sits beyond a callout above the selection', () => {
   assert.equal(chip.left + 100, anchor.right)
 })
 
-test('chip clears a callout above or below a mid-screen selection', () => {
+test('chip stays near a mid-screen selection when the callout fits above', () => {
   const anchor = { top: 400, bottom: 420, left: 100, right: 220 }
   const chip = chipPlacement(anchor, { width: 100, height: 36 }, { width: 390, height: 800 })
-  assert.equal(chip.top, anchor.bottom + CALLOUT_HEIGHT + CALLOUT_GAP)
-  assert.ok(chip.top >= anchor.bottom + CALLOUT_HEIGHT)
+  assert.equal(chip.top, anchor.bottom + CALLOUT_GAP)
+  assert.equal(chip.left + 100, anchor.right)
+})
+
+test('chip clears the callout above when there is no room below', () => {
+  const anchor = { top: 400, bottom: 420, left: 100, right: 220 }
+  const chip = chipPlacement(anchor, { width: 100, height: 36 }, { width: 390, height: 460 })
+  assert.equal(chip.top + 36, anchor.top - CALLOUT_HEIGHT - CALLOUT_GAP)
 })
 
 test('a single letter is not offered for translation, whatever surrounds it', () => {
