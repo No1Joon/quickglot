@@ -7,7 +7,8 @@
 # extension's resources". Rather than hand-editing project.pbxproj, regenerate
 # and re-apply the handful of settings we own.
 #
-# Run after adding or removing any file that ends up in dist/.
+# Run after adding or removing any file that ends up in dist/. Use
+# --version-only when only the manifest product version changed.
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -27,6 +28,33 @@ DEVICE_FAMILY="1"
 # The converter stamps MARKETING_VERSION = 1.0 regardless of the manifest, so the
 # product version has to be re-applied here like every other setting we own.
 VERSION="$(node -p "require('$REPO/extension/manifest.json').version")"
+
+# A version-only release does not need a new converter project. In particular,
+# a newer Xcode can rewrite unrelated project settings when regenerating one
+# created by an older converter.
+if [ "${1:-}" = --version-only ] && [ "$#" -eq 1 ]; then
+  PBX="$REPO/apple/$APP_NAME/$APP_NAME.xcodeproj/project.pbxproj"
+  python3 - "$PBX" "$VERSION" <<'PY'
+import re, sys
+path, version = sys.argv[1:]
+if not re.fullmatch(r'\d+(?:\.\d+){1,2}', version):
+    raise SystemExit(f'error: invalid product version {version!r}')
+with open(path) as f:
+    source = f.read()
+updated, count = re.subn(r'(MARKETING_VERSION = )\d+(?:\.\d+)*;',
+                         lambda m: m.group(1) + version + ';', source)
+if count != 8:
+    raise SystemExit(f'error: expected 8 MARKETING_VERSION settings, found {count}')
+with open(path, 'w') as f:
+    f.write(updated)
+print(f'MARKETING_VERSION = {version} in {count} configurations')
+PY
+  exit 0
+fi
+if [ "$#" -ne 0 ]; then
+  echo "usage: scripts/regen-xcode.sh [--version-only]" >&2
+  exit 2
+fi
 
 SOURCES=(
   "$APP_NAME/Shared (App)/ViewController.swift"
