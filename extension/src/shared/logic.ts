@@ -63,15 +63,24 @@ export function sideAwayFromCallout(anchorTop: number): 'above' | 'below' {
   return calloutSide(anchorTop) === 'above' ? 'below' : 'above'
 }
 
-/** Leave room for the system callout on either side of the selection. Safari's
- * actual menu side is not exposed to the page, so guessing it can overlap. */
+/** Keep the chip close to its text when the callout has room above it. Near the
+ * top the callout moves below, so leave its height there. If the chip cannot
+ * fit below, put it beyond the callout above the selection. */
 export function chipPlacement(
   anchor: Rect,
   size: Size,
   viewport: Viewport,
 ): { left: number; top: number } {
+  const belowGap = calloutSide(anchor.top) === 'below'
+    ? CALLOUT_HEIGHT + CALLOUT_GAP
+    : CALLOUT_GAP
+  if (anchor.bottom + belowGap + size.height <= viewport.height - MARGIN) {
+    return placement(anchor, size, viewport, {
+      prefer: 'below', gap: belowGap, align: 'end',
+    })
+  }
   return placement(anchor, size, viewport, {
-    prefer: 'below', gap: CALLOUT_HEIGHT + CALLOUT_GAP, align: 'end',
+    prefer: 'above', gap: CALLOUT_HEIGHT + CALLOUT_GAP, align: 'end',
   })
 }
 

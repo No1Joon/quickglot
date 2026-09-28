@@ -209,9 +209,10 @@ export function show(anchor: Anchor, content: Content): void {
 
 /**
  * On touch the iOS callout (Copy / Look Up / Translate) shares the selection
- * with us and a page cannot ask where it went. The chip leaves room for the
- * callout on either side, below when possible and above near the bottom. On
- * macOS there is no callout and the panel sits above.
+ * with us and a page cannot ask where it went. The chip sits just below the
+ * selection when the callout fits above; near the top or bottom it leaves room
+ * for the callout on the side where it can appear. On macOS there is no callout
+ * and the panel sits above.
  *
  * Placement is decided in viewport space — using the coordinates captured when
  * the selection was made, not the live ones — and then written out in page
