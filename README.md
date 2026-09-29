@@ -2,13 +2,35 @@
   <img src="extension/icons/icon-128.png" alt="QuickGlot 아이콘" width="88" height="88">
 </p>
 
-# QuickGlot
+<h1 align="center">QuickGlot</h1>
 
-**Safari에서 문장을 선택하고, 그 자리에서 번역하세요.**
+<p align="center"><strong>Safari에서 문장을 선택하고, 그 자리에서 번역하세요.</strong></p>
 
 QuickGlot은 Mac · iPhone · iPad용 Safari 번역 확장 프로그램입니다. Apple의 온디바이스 번역을 사용해 기기 안에서 처리합니다. 언어팩을 한 번 내려받으면 오프라인에서도 사용할 수 있고, 계정이나 API 키는 필요하지 않습니다.
 
-[**App Store에서 다운로드**](https://apps.apple.com/kr/app/quickglot/id6807894387) · [사용 도움말](https://no1joon.github.io/quickglot/support/) · [문의·오류 신고](https://github.com/No1Joon/quickglot/issues)
+<p align="center">
+  <a href="https://apps.apple.com/kr/app/quickglot/id6807894387"><strong>App Store에서 다운로드</strong></a> ·
+  <a href="https://no1joon.github.io/quickglot/support/">사용 도움말</a> ·
+  <a href="https://github.com/No1Joon/quickglot/issues">문의·오류 신고</a>
+</p>
+
+## 실제 화면
+
+### Mac Safari
+
+<p align="center">
+  <img src="assets/screenshots/mac-translation.png" alt="Mac Safari에서 선택한 문장 옆에 QuickGlot 번역 결과가 나타난 화면" width="760">
+</p>
+
+<p align="center"><sub>텍스트를 선택하면 그 자리에서 번역 결과가 나타납니다.</sub></p>
+
+### iPhone Safari
+
+<p align="center">
+  <img src="assets/screenshots/iphone-translation.png" alt="iPhone Safari에서 선택한 문단의 QuickGlot 번역 결과가 나타난 화면" width="290">
+</p>
+
+<p align="center"><sub>텍스트를 선택한 뒤 QuickGlot 번역 버튼을 누르면 문단 전체를 번역합니다.</sub></p>
 
 ## 이렇게 사용하세요
 
