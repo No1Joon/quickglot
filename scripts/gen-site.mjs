@@ -16,9 +16,17 @@ const repo = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const SRC = resolve(repo, 'app-info/policy')
 const OUT = resolve(repo, 'site')
 const BASE = '/quickglot'
+const ORIGIN = 'https://no1joon.github.io'
+const pageUrl = (slug) => `${ORIGIN}${BASE}/${slug === 'index' ? '' : `${slug}/`}`
+const language = (slug) => slug.endsWith('-en') ? 'en' : 'ko'
+const escapeHtml = (text) => String(text).replace(/[&<>"']/g, (char) => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}[char]))
 
 /** Pages that exist in both languages, so each can offer the other. */
 const COUNTERPART = {
+  index: ['index-en', 'English'],
+  'index-en': ['index', '한국어'],
   privacy: ['privacy-en', 'English'],
   'privacy-en': ['privacy', '한국어'],
   support: ['support-en', 'English'],
@@ -38,20 +46,31 @@ function splitFrontmatter(text) {
 
 function page({ title, description, content, slug }) {
   const counterpart = COUNTERPART[slug]
+  const homeSlug = language(slug) === 'en' ? 'index-en' : 'index'
   const nav = [
-    slug === 'index' ? null : `<a href="${BASE}/">QuickGlot</a>`,
-    counterpart ? `<a href="${BASE}/${counterpart[0]}">${counterpart[1]}</a>` : null,
+    slug === homeSlug ? null : `<a href="${pageUrl(homeSlug)}">QuickGlot</a>`,
+    counterpart ? `<a href="${pageUrl(counterpart[0])}">${counterpart[1]}</a>` : null,
   ]
     .filter(Boolean)
     .join('')
 
   return `<!doctype html>
-<html lang="${slug.endsWith('-en') ? 'en' : 'ko'}">
+<html lang="${language(slug)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title === 'QuickGlot' ? title : `${title} — QuickGlot`}</title>
-${description ? `<meta name="description" content="${description}">` : ''}
+<title>${escapeHtml(title.includes('QuickGlot') ? title : `${title} — QuickGlot`)}</title>
+${description ? `<meta name="description" content="${escapeHtml(description)}">` : ''}
+<link rel="canonical" href="${pageUrl(slug)}">
+${counterpart ? `<link rel="alternate" hreflang="${language(slug)}" href="${pageUrl(slug)}">
+<link rel="alternate" hreflang="${language(counterpart[0])}" href="${pageUrl(counterpart[0])}">` : ''}
+<link rel="icon" type="image/png" href="${BASE}/icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="QuickGlot">
+<meta property="og:title" content="${escapeHtml(title)}">
+${description ? `<meta property="og:description" content="${escapeHtml(description)}">` : ''}
+<meta property="og:url" content="${pageUrl(slug)}">
+<meta property="og:image" content="${ORIGIN}${BASE}/icon.png">
 <style>
 :root { color-scheme: light dark; --fg: #1a1a1a; --muted: #666; --bg: #fff; --line: #e3e3e3; --link: #1552c8; }
 @media (prefers-color-scheme: dark) {
@@ -81,7 +100,7 @@ blockquote { margin: 1rem 0; padding-left: 1rem; border-left: 3px solid var(--li
 <body>
 <main>
 ${nav ? `<nav>${nav}</nav>` : ''}
-<h1>${title}</h1>
+<h1>${escapeHtml(title)}</h1>
 ${content}
 </main>
 </body>
@@ -132,6 +151,12 @@ for (const file of files) {
   await writeFile(target, html)
   console.log(`  ${slug === 'index' ? '/' : `/${slug}`}`)
 }
+
+await writeFile(resolve(OUT, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${files.map((file) => `  <url><loc>${pageUrl(file.replace(/\.md$/, ''))}</loc></url>`).join('\n')}
+</urlset>
+`)
 
 // The icon doubles as the site's favicon.
 await cp(resolve(repo, 'extension/icons/icon-128.png'), resolve(OUT, 'icon.png'))

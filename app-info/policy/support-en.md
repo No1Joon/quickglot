@@ -1,6 +1,6 @@
 ---
-title: Support
-description: Setting up QuickGlot and common questions
+title: QuickGlot Safari Extension Setup and Troubleshooting
+description: Set up QuickGlot in Safari on iPhone, iPad and Mac. Learn how to enable the translation extension, download language packs and fix missing translations.
 ---
 
 Questions and problems: [GitHub Issues](https://github.com/No1Joon/quickglot/issues).

@@ -42,8 +42,8 @@ jobs:
       - run: npm run site
       - name: every published page exists
         run: |
-          for page in index.html privacy/index.html privacy-en/index.html \
-                      support/index.html support-en/index.html; do
+          for page in index.html index-en/index.html privacy/index.html privacy-en/index.html \
+                      support/index.html support-en/index.html sitemap.xml; do
             test -s "site/$page" || { echo "::error::site/$page missing or empty"; exit 1; }
           done
       - uses: actions/upload-pages-artifact@v3

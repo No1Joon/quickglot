@@ -10,6 +10,7 @@ QuickGlot은 Mac · iPhone · iPad용 Safari 번역 확장 프로그램입니다
 
 <p align="center">
   <a href="https://apps.apple.com/kr/app/quickglot/id6807894387"><strong>App Store에서 다운로드</strong></a> ·
+  <a href="https://no1joon.github.io/quickglot/">Safari 번역 확장 소개</a> ·
   <a href="https://no1joon.github.io/quickglot/support/">사용 도움말</a> ·
   <a href="https://github.com/No1Joon/quickglot/issues">문의·오류 신고</a>
 </p>
