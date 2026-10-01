@@ -26,6 +26,7 @@ docs/
 # 로컬 에이전트/IDE 설정 — 공유 금지. 에이전트는 파일시스템에서 직접 읽는다.
 # scripts/check-sources.mjs 가 tracked 로 들어오는 것까지 막는다.
 .claude/
+.codex/
 .agents/
 AGENTS.md
 CLAUDE.md
