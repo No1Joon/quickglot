@@ -1,6 +1,6 @@
 ---
-title: 고객 지원
-description: QuickGlot 설정 방법과 자주 묻는 문제
+title: QuickGlot Safari 번역 확장 설치·사용법
+description: 아이폰·아이패드·맥에서 QuickGlot Safari 번역 확장을 켜고 언어팩을 설정하는 방법. 선택한 문장의 번역이 나타나지 않을 때 확인할 권한과 해결 방법을 안내합니다.
 ---
 
 문의는 [GitHub 이슈](https://github.com/No1Joon/quickglot/issues) 로 받습니다.
