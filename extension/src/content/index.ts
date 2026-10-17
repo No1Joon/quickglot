@@ -60,9 +60,16 @@ function readSelection(): Selected | null {
 
   const text = selection.toString().trim()
   if (!isTranslatable(text)) return null
-  if (isEditable(selection.anchorNode)) return null
-
   const range = selection.getRangeAt(0)
+  if (isEditable(range.startContainer) || isEditable(range.endContainer)) return null
+  // A drag can begin and end outside an editor while still covering its text.
+  // Check the entire range before sending any of it to the native handler.
+  const ancestor = range.commonAncestorContainer
+  if (ancestor instanceof Element || ancestor instanceof Document || ancestor instanceof DocumentFragment) {
+    for (const element of ancestor.querySelectorAll('input, textarea, [contenteditable]')) {
+      if (isEditable(element) && range.intersectsNode(element)) return null
+    }
+  }
   const rect = range.getBoundingClientRect()
   // Collapsed or off-screen rects give us nothing to anchor to.
   if (rect.width === 0 && rect.height === 0) return null

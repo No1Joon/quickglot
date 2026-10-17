@@ -5,7 +5,7 @@ description: QuickGlot collects, transmits, and stores nothing
 
 **QuickGlot does not collect, transmit, or store your data. There is no server.**
 
-Last updated: 26 August 2026
+Last updated: 17 October 2026
 
 ## What the extension does
 
@@ -48,9 +48,9 @@ Those two are the only permissions QuickGlot requests. It does **not** ask for t
 ## Safeguards
 
 - Text inside password fields, text inputs, and editable areas is ignored.
-- Diagnostic logs record only the character count and the language pair, never the text itself or its translation.
-- The on-page panel is rendered in a closed shadow root, so scripts on the page cannot read what was translated.
-- The app and the extension run in a sandbox with **no network entitlement**. You do not have to take the code's word for it: `codesign -d --entitlements - QuickGlot.app` shows no `com.apple.security.network.client`.
+- Diagnostic logs record character counts, language settings, processing times, and success or failure status. They do not record selected text, translations, or detailed system error messages.
+- The translation panel uses a closed shadow root to separate it from ordinary page DOM access and styles. Shadow DOM is not a security boundary and does not guarantee that translations stay secret from a malicious page.
+- The macOS app and native extension run in a sandbox with **no network entitlement**. `codesign -d --entitlements - QuickGlot.app` shows no `com.apple.security.network.client`. On iOS, QuickGlot code also makes no network requests.
 
 ## Verify it yourself
 

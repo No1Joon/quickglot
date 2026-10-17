@@ -273,12 +273,12 @@ private enum Translator {
             case .unableToIdentifyLanguage:
                 return .failure(.undetectable, "Could not identify the language")
             default:
-                log.error("translation failed: \(error.localizedDescription, privacy: .public)")
-                return .failure(.unknown, error.localizedDescription)
+                log.error("translation failed")
+                return .failure(.unknown, "Translation failed")
             }
         }
-        log.error("translation failed: \(error.localizedDescription, privacy: .public)")
-        return .failure(.unknown, error.localizedDescription)
+        log.error("translation failed")
+        return .failure(.unknown, "Translation failed")
     }
 }
 
