@@ -31,6 +31,19 @@ async function harness() {
   let text = 'Hello there'
   let top = 300
   let node = {}
+  let endNode: object | undefined
+  let ancestor: object | undefined
+  const intersected = new Set<object>()
+  class FakeElement {
+    parentElement: FakeElement | null = null
+    children: FakeElement[] = []
+    querySelectorAll() { return this.children }
+  }
+  class FakeHTMLElement extends FakeElement { isContentEditable = false }
+  class FakeInput extends FakeHTMLElement {}
+  class FakeTextArea extends FakeHTMLElement {}
+  class FakeDocument extends FakeElement {}
+  class FakeDocumentFragment extends FakeElement {}
   let offset = 0
   let requests = 0
   const addEventListener = (name: string, callback: (event: object) => void) => {
@@ -44,13 +57,17 @@ async function harness() {
   }
   const context = {
     window, console: { debug() {} }, performance,
-    Element: class {}, HTMLElement: class {}, HTMLInputElement: class {}, HTMLTextAreaElement: class {},
+    Element: FakeElement, HTMLElement: FakeHTMLElement,
+    HTMLInputElement: FakeInput, HTMLTextAreaElement: FakeTextArea,
+    Document: FakeDocument, DocumentFragment: FakeDocumentFragment,
     document: {
       addEventListener,
       getSelection: () => ({
         isCollapsed: text === '', rangeCount: 1, anchorNode: null,
         toString: () => text,
-        getRangeAt: () => ({ startContainer: node, endContainer: node,
+        getRangeAt: () => ({ startContainer: node, endContainer: endNode ?? node,
+          commonAncestorContainer: ancestor ?? node,
+          intersectsNode: (element: object) => intersected.has(element),
           startOffset: offset, endOffset: offset + text.length, getBoundingClientRect: () => ({
           top: top - window.scrollY, bottom: top + 20 - window.scrollY,
           left: 20, right: 180, width: 160, height: 20,
@@ -81,6 +98,11 @@ async function harness() {
   assert.equal(context.rendered?.kind, 'result')
   return { context, emit, settleSelection, setText: (value: string) => { text = value },
     setTop: (value: number) => { top = value },
+    setRange: (start: object, end: object, common: object, covered: object[] = []) => {
+      node = start; endNode = end; ancestor = common
+      intersected.clear()
+      covered.forEach(element => intersected.add(element))
+    },
     changeNode: () => { node = {} }, changeOffset: () => { offset += 20 }, requests: () => requests }
 }
 
@@ -98,6 +120,41 @@ test('iOS scroll gesture and toolbar resize preserve the translated result', asy
   h.setText('')
   h.settleSelection()
   assert.equal(h.context.rendered?.kind, 'result')
+})
+
+test('selection touching editable content never sends a translation request', async () => {
+  for (const kind of ['input', 'textarea', 'editable']) {
+    for (const location of ['start', 'end', 'inside']) {
+      const h = await harness()
+      h.emit('keydown', { key: 'Escape' })
+      const outside = new h.context.HTMLElement()
+      const editor = kind === 'input' ? new h.context.HTMLInputElement()
+        : kind === 'textarea' ? new h.context.HTMLTextAreaElement()
+          : Object.assign(new h.context.HTMLElement(), { isContentEditable: true })
+      const textNode = { parentElement: editor }
+      const common = new h.context.HTMLElement()
+      common.children = location === 'inside' ? [editor] : []
+      h.setRange(location === 'start' ? textNode : outside,
+        location === 'end' ? textNode : outside, common, [editor])
+      h.settleSelection()
+      assert.equal(h.context.rendered, null, `${kind} at ${location}`)
+      assert.equal(h.requests(), 1, 'only the harness setup translated')
+    }
+  }
+})
+
+test('an editor outside the selection does not block ordinary text', async () => {
+  const h = await harness()
+  h.emit('keydown', { key: 'Escape' })
+  const outside = new h.context.HTMLElement()
+  const common = new h.context.HTMLElement()
+  common.children = [new h.context.HTMLInputElement()]
+  h.setRange(outside, outside, common)
+  h.settleSelection()
+  assert.equal(h.context.rendered?.kind, 'chip')
+  h.context.rendered?.onTap?.()
+  await setImmediate()
+  assert.equal(h.requests(), 2)
 })
 
 test('completed outside tap dismisses, but tapping the panel does not', async () => {
