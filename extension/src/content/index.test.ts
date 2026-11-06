@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import { runInNewContext } from 'node:vm'
 import { setImmediate } from 'node:timers/promises'
 import { build } from 'esbuild'
+import type { TranslateResponse } from '../shared/messages.ts'
 
 // Run the real event handlers with a controlled Safari event stream. Only the
 // renderer and browser APIs are substituted; selection and dismissal stay real.
@@ -24,9 +25,12 @@ const bundled = build({
   }],
 })
 
-async function harness() {
+async function harness(touch = true, initialize = true) {
   const handlers = new Map<string, Array<(event: object) => void>>()
-  const timers = new Map<number, () => void>()
+  const timers = new Map<number, { callback: () => void; at: number }>()
+  let now = 0
+  let respond: () => Promise<TranslateResponse> = async () =>
+    ({ ok: true, text: '안녕하세요', source: 'en', target: 'ko', pinned: '' })
   let id = 0
   let text = 'Hello there'
   let top = 300
@@ -46,13 +50,16 @@ async function harness() {
   class FakeDocumentFragment extends FakeElement {}
   let offset = 0
   let requests = 0
+  const requestedTexts: string[] = []
   const addEventListener = (name: string, callback: (event: object) => void) => {
     handlers.set(name, [...(handlers.get(name) ?? []), callback])
   }
   const window = {
     innerWidth: 390, innerHeight: 800, scrollX: 0, scrollY: 0,
-    matchMedia: () => ({ matches: true }), addEventListener,
-    setTimeout: (callback: () => void) => { timers.set(++id, callback); return id },
+    matchMedia: () => ({ matches: touch }), addEventListener,
+    setTimeout: (callback: () => void, delay = 0) => {
+      timers.set(++id, { callback, at: now + delay }); return id
+    },
     clearTimeout: (key: number) => timers.delete(key),
   }
   const context = {
@@ -74,29 +81,44 @@ async function harness() {
         }) }),
       }),
     },
-    browser: { runtime: { sendMessage: async () => {
+    browser: { runtime: { sendMessage: async (message: { text: string }) => {
       requests++
-      return { ok: true, text: '안녕하세요', source: 'en', target: 'ko', pinned: '' }
-    } } },
-    rendered: null as null | { kind: string; onTap?: () => void },
+      requestedTexts.push(message.text)
+      return respond()
+    } }, i18n: { getMessage: (key: string) => key } },
+    rendered: null as null | { kind: string; text?: string },
   }
   runInNewContext((await bundled).outputFiles![0]!.text, context)
   const emit = (type: string, event = {}) => handlers.get(type)?.forEach(fn => fn({
     pointerId: 1, isPrimary: true, button: 0, clientX: 10, clientY: 10, timeStamp: 100,
     ...event,
   }))
-  const settleSelection = () => {
-    emit('selectionchange')
-    const pending = [...timers.values()]
-    timers.clear()
-    pending.forEach(fn => fn())
+  const advance = async (ms: number) => {
+    const until = now + ms
+    while (true) {
+      const next = [...timers].sort((a, b) => a[1].at - b[1].at)[0]
+      if (!next || next[1].at > until) break
+      now = next[1].at
+      timers.delete(next[0])
+      next[1].callback()
+      await setImmediate()
+    }
+    now = until
+    await setImmediate()
   }
-  settleSelection()
-  assert.equal(context.rendered?.kind, 'chip')
-  context.rendered?.onTap?.()
-  await setImmediate()
-  assert.equal(context.rendered?.kind, 'result')
-  return { context, emit, settleSelection, setText: (value: string) => { text = value },
+  const settleSelection = async () => {
+    emit('selectionchange')
+    await advance(300)
+  }
+  if (initialize) {
+    if (touch) await settleSelection()
+    else { emit('mouseup'); await advance(0) }
+    assert.equal(context.rendered?.kind, 'result')
+  }
+  return { context, emit, settleSelection, advance, requestedTexts,
+    rendered: () => context.rendered,
+    setResponse: (value: typeof respond) => { respond = value },
+    setText: (value: string) => { text = value },
     setTop: (value: number) => { top = value },
     setRange: (start: object, end: object, common: object, covered: object[] = []) => {
       node = start; endNode = end; ancestor = common
@@ -114,11 +136,11 @@ test('iOS scroll gesture and toolbar resize preserve the translated result', asy
   h.emit('pointercancel', { target: 'page' })
   h.context.window.innerHeight = 900
   h.emit('resize')
-  h.settleSelection()
+  await h.settleSelection()
   assert.equal(h.context.rendered?.kind, 'result')
   assert.equal(h.requests(), 1)
   h.setText('')
-  h.settleSelection()
+  await h.settleSelection()
   assert.equal(h.context.rendered?.kind, 'result')
 })
 
@@ -136,7 +158,7 @@ test('selection touching editable content never sends a translation request', as
       common.children = location === 'inside' ? [editor] : []
       h.setRange(location === 'start' ? textNode : outside,
         location === 'end' ? textNode : outside, common, [editor])
-      h.settleSelection()
+      await h.settleSelection()
       assert.equal(h.context.rendered, null, `${kind} at ${location}`)
       assert.equal(h.requests(), 1, 'only the harness setup translated')
     }
@@ -150,10 +172,8 @@ test('an editor outside the selection does not block ordinary text', async () =>
   const common = new h.context.HTMLElement()
   common.children = [new h.context.HTMLInputElement()]
   h.setRange(outside, outside, common)
-  h.settleSelection()
-  assert.equal(h.context.rendered?.kind, 'chip')
-  h.context.rendered?.onTap?.()
-  await setImmediate()
+  await h.settleSelection()
+  assert.equal(h.context.rendered?.kind, 'result')
   assert.equal(h.requests(), 2)
 })
 
@@ -165,6 +185,9 @@ test('completed outside tap dismisses, but tapping the panel does not', async ()
   h.emit('pointerdown', { target: 'page' })
   h.emit('pointerup', { target: 'page' })
   assert.equal(h.context.rendered, null)
+  await h.settleSelection()
+  assert.equal(h.context.rendered, null)
+  assert.equal(h.requests(), 1)
 })
 
 test('rotation invalidates the anchor', async () => {
@@ -174,28 +197,29 @@ test('rotation invalidates the anchor', async () => {
   assert.equal(h.context.rendered, null)
 })
 
-test('selecting identical words elsewhere replaces the pinned result with a chip', async () => {
+test('selecting identical words elsewhere automatically translates the new DOM range', async () => {
   const h = await harness()
   h.setTop(600)
   h.changeNode()
-  h.settleSelection()
-  assert.equal(h.context.rendered?.kind, 'chip')
+  await h.settleSelection()
+  assert.equal(h.context.rendered?.kind, 'result')
+  assert.equal(h.requests(), 2)
 })
-
 
 test('subpixel drift of the same DOM selection preserves the result', async () => {
   const h = await harness()
   h.context.window.scrollY = 100.3333
   h.setTop(300.3333)
-  h.settleSelection()
+  await h.settleSelection()
   assert.equal(h.context.rendered?.kind, 'result')
 })
 
 test('identical text at different offsets is a new selection', async () => {
   const h = await harness()
   h.changeOffset()
-  h.settleSelection()
-  assert.equal(h.context.rendered?.kind, 'chip')
+  await h.settleSelection()
+  assert.equal(h.context.rendered?.kind, 'result')
+  assert.equal(h.requests(), 2)
 })
 
 test('drags, scrolls, cancellations, long presses and multi-touch are not taps', async () => {
@@ -212,4 +236,73 @@ test('drags, scrolls, cancellations, long presses and multi-touch are not taps',
     })
     assert.equal(h.context.rendered?.kind, 'result', gesture)
   }
+})
+
+test('iOS automatically translates only after the latest selection settles for 300ms', async () => {
+  const h = await harness(true, false)
+  h.emit('selectionchange')
+  await h.advance(299)
+  assert.equal(h.requests(), 0)
+  h.setText('Hello world')
+  h.emit('selectionchange')
+  await h.advance(299)
+  assert.equal(h.requests(), 0)
+  await h.advance(1)
+  assert.equal(h.requests(), 1)
+  assert.deepEqual(h.requestedTexts, ['Hello world'])
+  assert.equal(h.context.rendered?.kind, 'result')
+  await h.settleSelection()
+  assert.equal(h.requests(), 1)
+})
+
+test('selection changes invalidate an in-flight response before the debounce expires', async () => {
+  const h = await harness(true, false)
+  let finish!: (response: TranslateResponse) => void
+  h.setResponse(() => new Promise(resolve => { finish = resolve }))
+  await h.settleSelection()
+  h.setText('Another sentence')
+  h.emit('selectionchange')
+  finish({ ok: true, text: 'stale', source: 'en', target: 'ko', pinned: '' })
+  await h.advance(200)
+  assert.equal(h.context.rendered, null, 'neither the old result nor its loading panel returns')
+  assert.equal(h.requests(), 1)
+  h.setResponse(async () => ({ ok: true, text: 'new', source: 'en', target: 'ko', pinned: '' }))
+  await h.advance(100)
+  assert.equal(h.rendered()?.text, 'new')
+  assert.equal(h.requests(), 2)
+})
+
+test('deselection and dismissal cancel a pending automatic translation', async () => {
+  for (const action of ['deselect', 'escape', 'rotate', 'tap']) {
+    const h = await harness(true, false)
+    h.emit('selectionchange')
+    if (action === 'deselect') { h.setText(''); h.emit('selectionchange') }
+    if (action === 'escape') h.emit('keydown', { key: 'Escape' })
+    if (action === 'rotate') { h.context.window.innerWidth = 800; h.emit('resize') }
+    if (action === 'tap') { h.emit('pointerdown'); h.emit('pointerup') }
+    await h.advance(1000)
+    assert.equal(h.requests(), 0, action)
+    assert.equal(h.context.rendered, null, action)
+  }
+})
+
+test('same-language automatic translations remain silent', async () => {
+  const h = await harness(true, false)
+  h.setResponse(async () => ({ ok: false, error: 'sameLanguage', message: '' }))
+  await h.settleSelection()
+  await h.advance(1000)
+  assert.equal(h.context.rendered, null)
+  await h.settleSelection()
+  assert.equal(h.requests(), 1)
+})
+
+test('macOS continues to translate on mouseup without the touch debounce', async () => {
+  const h = await harness(false, false)
+  h.emit('selectionchange')
+  await h.advance(1000)
+  assert.equal(h.requests(), 0)
+  h.emit('mouseup', { target: 'page' })
+  await h.advance(0)
+  assert.equal(h.requests(), 1)
+  assert.equal(h.context.rendered?.kind, 'result')
 })

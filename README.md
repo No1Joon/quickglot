@@ -31,14 +31,14 @@ QuickGlot은 Mac · iPhone · iPad용 Safari 번역 확장 프로그램입니다
   <img src="assets/screenshots/iphone-translation.png" alt="iPhone Safari에서 선택한 문단의 QuickGlot 번역 결과가 나타난 화면" width="290">
 </p>
 
-<p align="center"><sub>텍스트를 선택한 뒤 QuickGlot 번역 버튼을 누르면 문단 전체를 번역합니다.</sub></p>
+<p align="center"><sub>텍스트를 선택하고 범위 조절을 잠시 멈추면 문단 전체를 자동으로 번역합니다.</sub></p>
 
 ## 이렇게 사용하세요
 
 | 기기 | 번역하는 방법 |
 | --- | --- |
 | **Mac** | 웹페이지의 텍스트를 드래그해 선택하면 번역이 나타납니다. |
-| **iPhone · iPad** | 텍스트를 선택하고, 선택 영역 근처의 **QuickGlot 버튼**을 누릅니다. |
+| **iPhone · iPad** | 텍스트를 선택하고, 범위 조절을 잠시 멈추면 번역이 나타납니다. |
 
 번역은 선택한 문장 옆에 표시됩니다. 번역 창 바깥을 누르면 닫힙니다.
 
