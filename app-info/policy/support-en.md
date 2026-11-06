@@ -25,7 +25,7 @@ Earlier versions of the operating system are not supported: the system capabilit
 ## Using it
 
 - **macOS**: select text with the mouse and the translation appears where you selected.
-- **iOS / iPadOS**: select text, then tap the button that appears.
+- **iOS / iPadOS**: select text and pause adjusting the range to translate automatically.
 
 The panel stays with the sentence it translated. Click outside it or press Esc to dismiss it.
 
@@ -36,6 +36,7 @@ The panel stays with the sentence it translated. Click outside it or press Esc t
 - Check that the extension is enabled and allowed on that site in Safari's settings.
 - Tabs that were already open when you enabled the extension need to be reloaded.
 - Selections inside text fields, search boxes, and other editable areas are ignored on purpose.
+- On iOS, the panel is hidden if there is not enough space around the system menu and selection handles. In landscape, rotate to portrait or shorten the selection.
 
 ### Nothing happens on text I can already read
 
