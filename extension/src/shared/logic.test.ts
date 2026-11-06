@@ -9,6 +9,7 @@ import {
   placement,
   RTL_LANGUAGES,
   sideAwayFromCallout,
+  touchPanelPlacement,
   toPageCoordinates,
   CALLOUT_GAP,
   CALLOUT_HEIGHT,
@@ -196,5 +197,43 @@ test('a partly visible selection still offers its chip', () => {
     { top: 100, bottom: 120, left: 990, right: 1010 },
   ]) {
     assert.equal(intersectsViewport(anchor, viewport), true)
+  }
+})
+
+test('automatic touch panel clears the menu below a top-edge selection', () => {
+  const anchor = { top: 3, bottom: 28, left: 20, right: 98 }
+  const spot = touchPanelPlacement(anchor, { width: 300, height: 100 }, { width: 393, height: 695 })!
+  assert.equal(spot.top, anchor.bottom + CALLOUT_HEIGHT + CALLOUT_GAP)
+  assert.ok(spot.left >= MARGIN)
+})
+
+test('automatic touch panel clears the menu above a bottom-edge selection', () => {
+  const anchor = { top: 650, bottom: 675, left: 20, right: 98 }
+  const spot = touchPanelPlacement(anchor, { width: 300, height: 100 }, { width: 393, height: 695 })!
+  assert.equal(spot.top + 100, anchor.top - CALLOUT_HEIGHT - CALLOUT_GAP)
+})
+
+test('long touch results shrink to the available side without covering handles or menu', () => {
+  for (const height of [500, 695, 844]) {
+    for (const top of [3, 100, 250, height - 40]) {
+      const anchor = { top, bottom: top + 25, left: 20, right: 200 }
+      const spot = touchPanelPlacement(anchor, { width: 300, height: 400 }, { width: 393, height })
+      if (!spot) continue
+      const bottom = spot.top + Math.min(400, spot.maxHeight)
+      const aboveGap = CALLOUT_GAP + CALLOUT_HEIGHT
+      const belowGap = aboveGap
+      assert.ok(bottom <= top - aboveGap || spot.top >= anchor.bottom + belowGap)
+      assert.ok(spot.top >= MARGIN)
+      assert.ok(bottom <= height - MARGIN)
+    }
+  }
+})
+
+test('touch panels hide while the selection fills or leaves the viewport', () => {
+  for (const anchor of [
+    { top: 10, bottom: 680, left: 20, right: 300 },
+    { top: -100, bottom: -20, left: 20, right: 300 },
+  ]) {
+    assert.equal(touchPanelPlacement(anchor, size, { width: 393, height: 695 }), null)
   }
 })

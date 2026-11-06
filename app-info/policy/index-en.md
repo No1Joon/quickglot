@@ -9,7 +9,7 @@ Reading an article or document in another language? **Select a sentence or parag
 
 ## Translate selected text in Safari on iPhone and iPad
 
-Touch and hold text on a webpage, select a sentence or paragraph, then tap the **QuickGlot button** near your selection to see the translation.
+Touch and hold text on a webpage to select a sentence or paragraph. Pause adjusting the selection and its translation appears automatically.
 
 ## Translate a sentence in Safari on Mac
 

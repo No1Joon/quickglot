@@ -19,8 +19,8 @@ window.__quickglotInjected = true
 
 /**
  * macOS: releasing the mouse over a selection translates immediately.
- * iOS: the system callout owns the selection gesture, so we surface a chip
- * that the user taps — settled in the design pass, see docs/DECISIONS.md.
+ * iOS: selection handles emit selectionchange while moving, so wait for the
+ * selection to settle before translating without an extra tap.
  */
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches
 
@@ -161,49 +161,49 @@ async function translate(selected: Selected): Promise<void> {
 }
 
 /**
- * True once a tap has produced a result. Tapping the chip clears the text
- * selection on iOS, which fires selectionchange with nothing selected — that
- * must not dismiss the translation the tap just asked for.
+ * Keep an automatically requested result through Safari's empty-selection
+ * notifications while scrolling. Remember the DOM range to avoid translating
+ * the same selection again, including after an outside tap dismisses it.
  */
 let resultPinned = false
 let pinnedSelection: Selected | null = null
+let selectionTimer: number | undefined
 
 function close(): void {
   sequence++
+  window.clearTimeout(selectionTimer)
   resultPinned = false
-  pinnedSelection = null
   dismiss()
 }
 
 function start(): void {
   if (IS_TOUCH) {
-    let timer: number | undefined
     document.addEventListener('selectionchange', () => {
-      window.clearTimeout(timer)
-      timer = window.setTimeout(() => {
-        const selected = readSelection()
-        if (!selected) {
-          if (!resultPinned) close()
-          return
+      window.clearTimeout(selectionTimer)
+      const selected = readSelection()
+      if (!selected) {
+        if (!resultPinned) {
+          pinnedSelection = null
+          close()
         }
-        if (resultPinned && pinnedSelection &&
+        return
+      }
+      if (pinnedSelection &&
           selected.text === pinnedSelection.text &&
           selected.startContainer === pinnedSelection.startContainer &&
           selected.startOffset === pinnedSelection.startOffset &&
           selected.endContainer === pinnedSelection.endContainer &&
           selected.endOffset === pinnedSelection.endOffset) return
-        resultPinned = false
-        pinnedSelection = null
-        sequence++
-        show(selected.anchor, {
-          kind: 'chip',
-          onTap: () => {
-            window.clearTimeout(timer)
-            resultPinned = true
-            pinnedSelection = selected
-            void translate(selected)
-          },
-        })
+
+      // Invalidate the old response immediately, before the debounce expires.
+      close()
+      pinnedSelection = null
+      selectionTimer = window.setTimeout(() => {
+        const settled = readSelection()
+        if (!settled) return
+        resultPinned = true
+        pinnedSelection = settled
+        void translate(settled)
       }, SELECTION_DEBOUNCE_MS)
     })
 
@@ -228,7 +228,6 @@ function start(): void {
         !isOwnElement(event.target)
       tap = null
       if (dismissTap) {
-        window.clearTimeout(timer)
         close()
       }
     }, true)
