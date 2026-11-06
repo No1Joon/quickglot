@@ -41,6 +41,10 @@ const STYLE = `
   box-shadow: 0 6px 28px rgba(0, 0, 0, 0.24);
   border: 1px solid color-mix(in srgb, CanvasText 12%, transparent);
 }
+@media (pointer: coarse) {
+  .panel { box-sizing: border-box; }
+  .dots { min-height: 1.5em; }
+}
 .meta {
   font-size: 11px;
   letter-spacing: 0.04em;
@@ -74,14 +78,14 @@ import {
   intersectsViewport,
   placement,
   RTL_LANGUAGES,
-  sideAwayFromCallout,
+  touchPanelPlacement,
   toPageCoordinates,
 } from '../shared/logic'
 
 /** Touch means the iOS callout shares the selection with us; see `position`. */
 const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches
 
-/** How long after the last scroll event the chip is re-placed. */
+/** How long after the last scroll event touch UI is re-placed. */
 const SCROLL_SETTLE_MS = 120
 
 export interface Anchor {
@@ -104,24 +108,22 @@ type Content =
 let host: HTMLDivElement | null = null
 let root: ShadowRoot | null = null
 
-/** What is on screen, so a scroll can re-place the chip. */
+/** What is on screen, so a scroll can re-place touch UI. */
 let shown: { layer: HTMLElement; anchor: Anchor; isChip: boolean } | null = null
 let scrollTimer: number | undefined
 
 /**
  * The callout re-decides its side whenever the selection moves in the viewport,
- * so a chip placed before the scroll can end up under it. Wait for the scroll
- * to settle and place the chip again from where the selection is now; the
- * panels stay put, since tapping the chip cleared the selection and the callout
- * with it.
+ * so UI placed before the scroll can end up under it. Wait for scrolling to
+ * settle and place it again from where the selection is now.
  */
 function onScroll(): void {
   window.clearTimeout(scrollTimer)
   scrollTimer = window.setTimeout(() => {
-    if (!shown?.isChip || !shown.layer.isConnected) return
+    if (!shown?.layer.isConnected) return
     const { layer, anchor } = shown
     shown.anchor = anchorNow(anchor, { scrollX: window.scrollX, scrollY: window.scrollY })
-    position(layer, shown.anchor, true)
+    position(layer, shown.anchor, shown.isChip)
   }, SCROLL_SETTLE_MS)
 }
 
@@ -134,7 +136,10 @@ function ensureRoot(): ShadowRoot {
   style.textContent = STYLE
   root.append(style)
   document.documentElement.append(host)
-  if (IS_TOUCH) window.addEventListener('scroll', onScroll, { passive: true })
+  if (IS_TOUCH) {
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+  }
   return root
 }
 
@@ -145,6 +150,7 @@ export function isOwnElement(target: EventTarget | null): boolean {
 
 export function dismiss(): void {
   window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', onScroll)
   window.clearTimeout(scrollTimer)
   shown = null
   host?.remove()
@@ -153,6 +159,11 @@ export function dismiss(): void {
 }
 
 export function show(anchor: Anchor, content: Content): void {
+  // A response can arrive after scrolling has already stopped. Touch placement
+  // must reserve menu space at the selection's current viewport position.
+  if (IS_TOUCH) {
+    anchor = anchorNow(anchor, { scrollX: window.scrollX, scrollY: window.scrollY })
+  }
   const shadow = ensureRoot()
   shadow.querySelector('.layer')?.remove()
 
@@ -209,29 +220,42 @@ export function show(anchor: Anchor, content: Content): void {
 
 /**
  * On touch the iOS callout (Copy / Look Up / Translate) shares the selection
- * with us and a page cannot ask where it went. The chip sits just below the
- * selection when the callout fits above; near the top or bottom it leaves room
- * for the callout on the side where it can appear. On macOS there is no callout
- * and the panel sits above.
+ * with us and a page cannot ask where it went. Touch UI leaves room for both
+ * the callout and selection handles. Long results scroll within the space on
+ * the available side; if there is no room, hide until scrolling frees space.
+ * On macOS there is no callout and the panel sits above.
  *
- * Placement is decided in viewport space — using the coordinates captured when
- * the selection was made, not the live ones — and then written out in page
- * coordinates. The layer is absolutely positioned, so it stays with the text it
- * describes while the page scrolls, and the loading and result panels land in
- * the same spot even if the user scrolled while the translation was running.
+ * Placement is decided in viewport space, then written in page coordinates.
+ * Desktop uses the captured anchor; touch updates it on show and after scroll
+ * so each panel's size fits safely around the current selection position.
  */
 function position(layer: HTMLElement, anchor: Anchor, isChip = false): void {
   const viewport = { width: window.innerWidth, height: window.innerHeight }
-  // Keep the selection state so scrolling back can reveal the chip again.
-  const hideChip = isChip && !intersectsViewport(anchor, viewport)
-  layer.style.visibility = hideChip ? 'hidden' : 'visible'
-  if (hideChip) return
+  // Keep the selection state so scrolling back can reveal touch UI again.
+  const hidden = IS_TOUCH && !intersectsViewport(anchor, viewport)
+  layer.style.visibility = hidden ? 'hidden' : 'visible'
+  if (hidden) return
+
+  if (IS_TOUCH && !isChip) {
+    const panel = layer.querySelector<HTMLElement>('.panel')!
+    panel.style.maxHeight = ''
+    const spot = touchPanelPlacement(anchor, layer.getBoundingClientRect(), viewport)
+    if (!spot) {
+      layer.style.visibility = 'hidden'
+      return
+    }
+    panel.style.maxHeight = `${Math.min(spot.maxHeight, viewport.height / 2)}px`
+    const page = toPageCoordinates(spot, anchor)
+    layer.style.left = `${page.left}px`
+    layer.style.top = `${page.top}px`
+    return
+  }
 
   const { width, height } = layer.getBoundingClientRect()
   const spot = isChip && IS_TOUCH
     ? chipPlacement(anchor, { width, height }, viewport)
     : placement(anchor, { width, height }, viewport, {
-      prefer: IS_TOUCH ? sideAwayFromCallout(anchor.top) : 'above',
+      prefer: 'above',
       gap: CALLOUT_GAP,
       align: isChip ? 'end' : 'center',
     })

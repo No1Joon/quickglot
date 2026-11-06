@@ -84,6 +84,37 @@ export function chipPlacement(
   })
 }
 
+/** Keep an automatic touch panel outside both handles and the system callout.
+ * Constrain long results to the available side instead of clamping over the
+ * selection. If neither side can display a readable panel, wait for a scroll.
+ */
+export function touchPanelPlacement(
+  anchor: Rect,
+  size: Size,
+  viewport: Viewport,
+): { left: number; top: number; maxHeight: number } | null {
+  if (!intersectsViewport(anchor, viewport)) return null
+  // Safari may place its menu on either side even for a mid-screen word, and
+  // does not expose its bounds to page scripts. Reserve room on both sides.
+  const aboveGap = CALLOUT_GAP + CALLOUT_HEIGHT
+  const belowGap = aboveGap
+  const aboveSpace = Math.max(0, anchor.top - aboveGap - MARGIN)
+  const belowSpace = Math.max(0, viewport.height - MARGIN - anchor.bottom - belowGap)
+  const below = size.height <= belowSpace || belowSpace >= aboveSpace
+  const maxHeight = below ? belowSpace : aboveSpace
+  if (maxHeight < 72) return null
+  const height = Math.min(size.height, maxHeight)
+  const left = Math.max(MARGIN, Math.min(
+    anchor.left + (anchor.right - anchor.left - size.width) / 2,
+    viewport.width - size.width - MARGIN,
+  ))
+  return {
+    left,
+    top: below ? anchor.bottom + belowGap : anchor.top - aboveGap - height,
+    maxHeight,
+  }
+}
+
 /**
  * Where the anchor is in the viewport now, given where it was measured and how
  * far the page has scrolled since. Lets the chip follow the callout's
