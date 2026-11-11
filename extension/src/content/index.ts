@@ -32,8 +32,10 @@ const SELECTION_DEBOUNCE_MS = 300
  * instant, so painting the panel immediately only produces a flash.
  */
 const LOADING_DELAY_MS = 200
+const TRANSLATION_TIMEOUT_MS = 30_000
 
 let sequence = 0
+let cancelTranslation: (() => void) | undefined
 
 interface Selected {
   text: string
@@ -111,6 +113,7 @@ function describe(res: Extract<TranslateResponse, { ok: false }>): {
 }
 
 async function translate(selected: Selected): Promise<void> {
+  cancelTranslation?.()
   const ticket = ++sequence
   const started = performance.now()
   const loading = window.setTimeout(() => {
@@ -118,19 +121,27 @@ async function translate(selected: Selected): Promise<void> {
     if (ticket === sequence) show(selected.anchor, { kind: 'loading' })
   }, LOADING_DELAY_MS)
 
-  let res: TranslateResponse
-  try {
-    res = (await browser.runtime.sendMessage({
-      type: 'translate',
-      text: selected.text,
-    })) as TranslateResponse
-  } catch (e) {
-    res = {
-      ok: false,
-      error: 'unknown',
-      message: e instanceof Error ? e.message : String(e),
+  // Bound the UI wait even if Safari's native bridge never settles. Closing or
+  // replacing this request releases its timers; a late reply cannot repaint it.
+  const res = await new Promise<TranslateResponse | undefined>((resolve) => {
+    const finish = (response?: TranslateResponse) => {
+      window.clearTimeout(timeout)
+      window.clearTimeout(loading)
+      if (cancelTranslation === cancel) cancelTranslation = undefined
+      resolve(response)
     }
-  }
+    const cancel = () => finish()
+    const timeout = window.setTimeout(() => finish({
+      ok: false, error: 'unknown', message: browser.i18n.getMessage('errorGeneric'),
+    }), TRANSLATION_TIMEOUT_MS)
+    cancelTranslation = cancel
+    // Promise chaining also handles a synchronous bridge error.
+    Promise.resolve().then(() => browser.runtime.sendMessage({
+      type: 'translate', text: selected.text,
+    })).then(response => finish(response as TranslateResponse), () => finish({
+      ok: false, error: 'unknown', message: browser.i18n.getMessage('errorGeneric'),
+    }))
+  })
 
   console.debug(`[QuickGlot] translation round trip ${Math.round(performance.now() - started)}ms`)
   window.clearTimeout(loading)
@@ -153,6 +164,9 @@ async function translate(selected: Selected): Promise<void> {
       target: res.target,
     })
   } else {
+    // Keep successful/same-language selections deduplicated, but let a failed
+    // range be selected again after downloading packs or a transient failure.
+    pinnedSelection = null
     const { message, hint } = describe(
       res ?? { ok: false, error: 'unknown', message: 'No response' },
     )
@@ -171,6 +185,7 @@ let selectionTimer: number | undefined
 
 function close(): void {
   sequence++
+  cancelTranslation?.()
   window.clearTimeout(selectionTimer)
   resultPinned = false
   dismiss()
@@ -232,6 +247,37 @@ function start(): void {
       }
     }, true)
   } else {
+    let keyboardSelectionKey: string | null = null
+    const selectionKeys = new Set([
+      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+      'Home', 'End', 'PageUp', 'PageDown',
+    ])
+    const scheduleKeyboardSelection = () => {
+      window.clearTimeout(selectionTimer)
+      selectionTimer = window.setTimeout(() => {
+        const selected = readSelection()
+        if (selected) void translate(selected)
+      }, SELECTION_DEBOUNCE_MS)
+    }
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') keyboardSelectionKey = null
+      if (event.defaultPrevented || event.isComposing || isOwnElement(event.target) ||
+          isEditable(event.target instanceof Node ? event.target : null)) return
+      const selectAll = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a'
+      if ((event.shiftKey && selectionKeys.has(event.key)) || selectAll) {
+        // macOS may omit keyup while Command is held. Read after the native
+        // selection action and debounce Command shortcuts from keydown instead.
+        keyboardSelectionKey = event.metaKey || selectAll ? null : event.key
+        close()
+        if (keyboardSelectionKey === null) scheduleKeyboardSelection()
+      }
+    })
+    document.addEventListener('keyup', (event) => {
+      if (keyboardSelectionKey !== event.key) return
+      keyboardSelectionKey = null
+      if (event.defaultPrevented || event.isComposing) return
+      scheduleKeyboardSelection()
+    })
     document.addEventListener('mouseup', (event) => {
       if (isOwnElement(event.target)) return
       // The selection is not updated until after mouseup dispatches.
@@ -246,7 +292,12 @@ function start(): void {
     })
 
     document.addEventListener('mousedown', (event) => {
+      keyboardSelectionKey = null
       if (!isOwnElement(event.target)) close()
+    })
+    window.addEventListener('blur', () => {
+      keyboardSelectionKey = null
+      close()
     })
   }
 
