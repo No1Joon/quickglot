@@ -64,7 +64,7 @@ async function harness(touch = true, initialize = true) {
   }
   const context = {
     window, console: { debug() {} }, performance,
-    Element: FakeElement, HTMLElement: FakeHTMLElement,
+    Node: FakeElement, Element: FakeElement, HTMLElement: FakeHTMLElement,
     HTMLInputElement: FakeInput, HTMLTextAreaElement: FakeTextArea,
     Document: FakeDocument, DocumentFragment: FakeDocumentFragment,
     document: {
@@ -359,5 +359,103 @@ test('dismissal and a newer selection suppress the old timeout and late rejectio
     await h.advance(31_000)
     if (action === 'dismiss') assert.equal(h.rendered(), null)
     else assert.equal(h.rendered()?.text, 'new')
+  }
+})
+
+test('Mac keyboard selection translates after release and 300ms of rest', async () => {
+  for (const key of ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown']) {
+    const h = await harness(false, false)
+    const modifiers = { shiftKey: true }
+    h.emit('keydown', { key, ...modifiers })
+    h.emit('keydown', { key, repeat: true, ...modifiers })
+    await h.advance(1000)
+    assert.equal(h.requests(), 0, key)
+    // Selection modifiers may be released before the navigation key itself.
+    h.emit('keyup', { key })
+    await h.advance(299)
+    assert.equal(h.requests(), 0, key)
+    await h.advance(1)
+    assert.equal(h.requests(), 1, key)
+    assert.equal(h.rendered()?.kind, 'result', key)
+  }
+})
+
+test('Mac Command selection shortcuts work without a keyup event', async () => {
+  for (const event of [
+    { key: 'a', metaKey: true }, { key: 'A', metaKey: true },
+    { key: 'a', ctrlKey: true }, { key: 'ArrowRight', shiftKey: true, metaKey: true },
+  ]) {
+    const h = await harness(false, false)
+    h.emit('keydown', event)
+    await h.advance(200)
+    h.emit('keydown', { ...event, repeat: true })
+    await h.advance(299)
+    assert.equal(h.requests(), 0)
+    await h.advance(1)
+    assert.equal(h.requests(), 1)
+    h.emit('keyup', { key: event.key })
+    await h.advance(1000)
+    assert.equal(h.requests(), 1, 'keyup does not translate twice')
+  }
+})
+
+test('Mac selection keystrokes debounce and invalidate the previous response immediately', async () => {
+  const h = await harness(false, false)
+  let finish!: (response: TranslateResponse) => void
+  h.setResponse(() => new Promise(resolve => { finish = resolve }))
+  h.emit('mouseup')
+  await h.advance(0)
+  h.setText('Another sentence')
+  h.emit('keydown', { key: 'ArrowRight', shiftKey: true })
+  h.emit('keyup', { key: 'ArrowRight' })
+  await h.advance(200)
+  h.emit('keydown', { key: 'ArrowRight', shiftKey: true })
+  h.emit('keyup', { key: 'ArrowRight' })
+  finish({ ok: true, text: 'stale', source: 'en', target: 'ko', pinned: '' })
+  await h.advance(299)
+  assert.equal(h.rendered(), null)
+  h.setResponse(async () => ({ ok: true, text: 'new', source: 'en', target: 'ko', pinned: '' }))
+  await h.advance(1)
+  assert.equal(h.requests(), 2)
+  assert.equal(h.rendered()?.text, 'new')
+})
+
+test('ordinary, prevented and composing Mac keys do not request translation', async () => {
+  const h = await harness(false, false)
+  for (const event of [
+    { key: 'ArrowRight' }, { key: 'a' }, { key: 'c', metaKey: true },
+    { key: 'ArrowRight', shiftKey: true, defaultPrevented: true },
+    { key: 'ArrowRight', shiftKey: true, isComposing: true },
+  ]) {
+    h.emit('keydown', event)
+    h.emit('keyup', { key: event.key })
+    await h.advance(1000)
+  }
+  assert.equal(h.requests(), 0)
+})
+
+test('Mac editable selections and editor keystrokes never translate', async () => {
+  for (const inEditor of [true, false]) {
+    const h = await harness(false, false)
+    const input = new h.context.HTMLInputElement()
+    if (!inEditor) h.setRange(input, input, input)
+    h.emit('keydown', { key: 'a', metaKey: true, target: inEditor ? input : 'page' })
+    h.emit('keyup', { key: 'a' })
+    await h.advance(1000)
+    assert.equal(h.requests(), 0)
+  }
+})
+
+test('Escape, blur and mouse interaction cancel pending Mac keyboard translation', async () => {
+  for (const action of ['escape-before-release', 'escape-after-release', 'blur', 'mouse']) {
+    const h = await harness(false, false)
+    h.emit('keydown', { key: 'ArrowRight', shiftKey: true })
+    if (action === 'escape-before-release') h.emit('keydown', { key: 'Escape' })
+    h.emit('keyup', { key: 'ArrowRight' })
+    if (action === 'escape-after-release') h.emit('keydown', { key: 'Escape' })
+    if (action === 'blur') h.emit('blur')
+    if (action === 'mouse') h.emit('mousedown')
+    await h.advance(1000)
+    assert.equal(h.requests(), 0, action)
   }
 })

@@ -247,6 +247,37 @@ function start(): void {
       }
     }, true)
   } else {
+    let keyboardSelectionKey: string | null = null
+    const selectionKeys = new Set([
+      'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+      'Home', 'End', 'PageUp', 'PageDown',
+    ])
+    const scheduleKeyboardSelection = () => {
+      window.clearTimeout(selectionTimer)
+      selectionTimer = window.setTimeout(() => {
+        const selected = readSelection()
+        if (selected) void translate(selected)
+      }, SELECTION_DEBOUNCE_MS)
+    }
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') keyboardSelectionKey = null
+      if (event.defaultPrevented || event.isComposing || isOwnElement(event.target) ||
+          isEditable(event.target instanceof Node ? event.target : null)) return
+      const selectAll = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'a'
+      if ((event.shiftKey && selectionKeys.has(event.key)) || selectAll) {
+        // macOS may omit keyup while Command is held. Read after the native
+        // selection action and debounce Command shortcuts from keydown instead.
+        keyboardSelectionKey = event.metaKey || selectAll ? null : event.key
+        close()
+        if (keyboardSelectionKey === null) scheduleKeyboardSelection()
+      }
+    })
+    document.addEventListener('keyup', (event) => {
+      if (keyboardSelectionKey !== event.key) return
+      keyboardSelectionKey = null
+      if (event.defaultPrevented || event.isComposing) return
+      scheduleKeyboardSelection()
+    })
     document.addEventListener('mouseup', (event) => {
       if (isOwnElement(event.target)) return
       // The selection is not updated until after mouseup dispatches.
@@ -261,7 +292,12 @@ function start(): void {
     })
 
     document.addEventListener('mousedown', (event) => {
+      keyboardSelectionKey = null
       if (!isOwnElement(event.target)) close()
+    })
+    window.addEventListener('blur', () => {
+      keyboardSelectionKey = null
+      close()
     })
   }
 
