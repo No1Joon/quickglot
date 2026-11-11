@@ -306,3 +306,58 @@ test('macOS continues to translate on mouseup without the touch debounce', async
   assert.equal(h.requests(), 1)
   assert.equal(h.context.rendered?.kind, 'result')
 })
+
+test('a stalled bridge stops loading after 30 seconds and the same range can retry', async () => {
+  const h = await harness(true, false)
+  let finish!: (response: TranslateResponse) => void
+  h.setResponse(() => new Promise(resolve => { finish = resolve }))
+  await h.settleSelection()
+  await h.advance(29_999)
+  assert.equal(h.rendered()?.kind, 'loading')
+  await h.advance(1)
+  assert.equal(h.rendered()?.kind, 'error')
+  h.setResponse(async () => ({ ok: true, text: 'retried', source: 'en', target: 'ko', pinned: '' }))
+  await h.settleSelection()
+  assert.equal(h.requests(), 2)
+  assert.equal(h.rendered()?.text, 'retried')
+  finish({ ok: true, text: 'late', source: 'en', target: 'ko', pinned: '' })
+  await h.advance(30_000)
+  assert.equal(h.rendered()?.text, 'retried')
+})
+
+test('bridge rejection and translation failures allow the same iOS range to retry', async () => {
+  for (const failure of ['rejection', 'notInstalled', 'unknown'] as const) {
+    const h = await harness(true, false)
+    h.setResponse(async () => {
+      if (failure === 'rejection') throw new Error('bridge unavailable')
+      return { ok: false, error: failure, message: 'failed' }
+    })
+    await h.settleSelection()
+    assert.equal(h.rendered()?.kind, 'error', failure)
+    h.setResponse(async () => ({ ok: true, text: 'recovered', source: 'en', target: 'ko', pinned: '' }))
+    await h.settleSelection()
+    assert.equal(h.requests(), 2, failure)
+    assert.equal(h.rendered()?.text, 'recovered', failure)
+    await h.settleSelection()
+    assert.equal(h.requests(), 2, 'success is still deduplicated')
+  }
+})
+
+test('dismissal and a newer selection suppress the old timeout and late rejection', async () => {
+  for (const action of ['dismiss', 'replace']) {
+    const h = await harness(true, false)
+    let reject!: (error: Error) => void
+    h.setResponse(() => new Promise((_, fail) => { reject = fail }))
+    await h.settleSelection()
+    if (action === 'dismiss') h.emit('keydown', { key: 'Escape' })
+    else {
+      h.setText('Another sentence')
+      h.setResponse(async () => ({ ok: true, text: 'new', source: 'en', target: 'ko', pinned: '' }))
+      await h.settleSelection()
+    }
+    reject(new Error('late failure'))
+    await h.advance(31_000)
+    if (action === 'dismiss') assert.equal(h.rendered(), null)
+    else assert.equal(h.rendered()?.text, 'new')
+  }
+})
