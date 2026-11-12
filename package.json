@@ -4,6 +4,9 @@
   "private": true,
   "description": "Safari extension that translates selected text on-device with Apple's Translation framework",
   "type": "module",
+  "engines": {
+    "node": ">=22.23.5 <23"
+  },
   "scripts": {
     "build": "node scripts/build.mjs",
     "dev": "node scripts/build.mjs --watch",
