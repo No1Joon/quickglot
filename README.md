@@ -78,3 +78,15 @@ Mac에서 키보드로 범위를 조절하면 키를 놓고 잠시 멈춘 뒤 �
 ## 문의
 
 사용 중 문제가 생겼거나 제안하고 싶은 기능이 있다면 [GitHub Issues](https://github.com/No1Joon/quickglot/issues)에 남겨 주세요. 이슈는 공개되므로 번역한 개인정보나 계정 정보가 캡처에 포함되지 않도록 확인해 주세요.
+
+## 개발
+
+확장 빌드·사이트 생성·테스트에는 Node.js 22.23.5 이상(22.x)이 필요합니다. 로컬과 CI의 기준 버전은 `.node-version`입니다. `fnm`을 사용한다면 저장소에서 `fnm install` 후 `fnm use`로 맞춥니다. `npm ci`는 지원 범위 밖의 Node 버전을 거부합니다.
+
+```sh
+npm ci
+npm run build
+npm run site
+npm run typecheck
+npm test
+```

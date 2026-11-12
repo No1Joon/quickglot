@@ -37,7 +37,7 @@ jobs:
       - uses: actions/setup-node@v4
         if: matrix.language == 'swift'
         with:
-          node-version: 22
+          node-version-file: .node-version
           cache: npm
       - name: Build extension resources
         if: matrix.language == 'swift'
